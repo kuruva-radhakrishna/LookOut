@@ -1,0 +1,119 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.container {
+  flex: 1;
+}
+.navbar {
+  height: 5rem !important;
+  background-color: white;
+}
+
+.navbar-brand {
+  color: rgba(252, 45, 45, 0.783);
+  font-size: 2rem;
+}
+
+.nav-link {
+  color: #222 !important;
+}
+
+/* footer */
+
+.footer-info {
+  height: 7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  background-color: rgb(199, 199, 199);
+}
+
+.footer-info-social-links,
+.footer-info-polices,
+.footer-info-brand {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.footer-info-social-links a {
+  margin-right: 1rem;
+  font-size: 1.2rem;
+  color: #222;
+}
+
+.footer-info-polices a {
+  text-decoration: none;
+  color: #222;
+}
+.footer-info-polices a:hover {
+  text-decoration: underline;
+}
+
+.listing-card {
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+.index-img {
+  border-radius: 1rem !important;
+  width: 100% !important;
+  object-fit: cover !important;
+}
+
+.card-body {
+  padding: 0;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.listing-link {
+  text-decoration: none;
+}
+
+.card-img-overlay {
+  opacity: 0;
+}
+
+.card-img-overlay:hover {
+  opacity: 0.3;
+  background-color: white !important;
+}
+
+.edit-btn {
+  background-color: rgba(252, 45, 45, 0.783);
+}
+
+.btns {
+  display: flex;
+}
+
+.show-img {
+  padding: 0;
+  height: 40vh;
+  border-radius: 1rem;
+}
+
+.login-link {
+  text-decoration: none;
+  color: #222;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+#map {
+  height: 300px;
+  width: 100%;
+  border-radius: 1.5rem;
+}

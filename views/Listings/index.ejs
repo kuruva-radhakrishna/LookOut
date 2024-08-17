@@ -1,0 +1,223 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+  .index{
+    display: flex;
+    align-items: center;
+  }
+  .scroll-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #filters {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px;
+    scroll-behavior: smooth; /* Smooth scrolling */
+  }
+  #filters a.nav-link {
+    flex: 0 0 auto;
+    margin-right: 15px;
+  }
+
+  #filters .filter {
+    text-align: center;
+    padding: 10px;
+    border-radius: 1rem;
+    transition: background-color 0.3s ease;
+    margin: 0 1rem;
+  }
+  #filters .filter i{
+    opacity: 0.7;
+  }
+
+  #filters .filter i:hover {
+    opacity: 1;
+  }
+
+  /* Hide scrollbar */
+  #filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  #filters {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  /* Scroll indicators */
+  .scroll-indicator {
+    display: none; /* Initially hidden */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: white;
+    color: black;
+    padding: 5px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .tax-toggle{
+    padding: 1rem;
+    border: 1px solid black;
+    border-radius: 1rem;
+    text-align: center;
+    vertical-align: center;
+    height: 3.5rem;
+  }
+  .left-indicator {
+    left: 0;
+  }
+
+  .right-indicator {
+    right: 0;
+  }
+
+  /* Show indicators on small screens */
+  @media screen and (max-width: 768px) {
+    .scroll-indicator {
+      display: block;
+    }
+  }
+
+</style>
+
+
+<div class="index row">
+  <div class="scroll-wrapper col-xl-9 col-lg-8 col-md-6 col-sm-3 ">
+    <div class="scroll-indicator left-indicator mr-3">&lt;</div> <!-- Left indicator -->
+    <div id="filters">
+      <a class="nav-link active" href="/listings/filter/trending">
+        <div class="filter">
+          <div><i class="fa-solid fa-fire"></i></div>
+          <p>trending</p>
+        </div>
+      </a>
+      <!-- Other filter options here -->
+      <a class="nav-link active" href="/listings/filter/beaches">
+        <div class="filter">
+          <div><i class="fa-brands fa-fort-awesome"></i></div>
+          <p>castles</p>
+        </div>
+      </a>
+      <a class="nav-link active" href="/listings/filter/pools">
+        <div class="filter">
+          <div><i class="fa-solid fa-person-swimming"></i></div>
+          <p>pools</p>
+        </div>
+      </a>
+      <a class="nav-link active" aria-current="page" href="/listings/filter/rooms">
+        <div class="filter nav-link active">
+          <div><i class="fa-solid fa-house"></i></div>
+          <p>rooms</p>
+        </div>
+      </a>
+      <a class="nav-link active" aria-current="page" href="/listings/filter/mansion">
+        <div class="filter nav-link active">
+          <div><i class="fa-solid fa-water-ladder"></i></div>
+          <p>mansions</p>
+        </div>
+      </a>
+      <a class="nav-link active" aria-current="page" href="/listings/filter/mountains">
+        <div class="filter nav-link active">
+          <div><i class="fa-solid fa-mountain-city"></i></div>
+          <p>mountains</p>
+        </div>
+      </a>
+      <a class="nav-link active" aria-current="page" href="/listings/filter/beaches">
+        <div class="filter nav-link active">
+          <div><i class="fa-solid fa-umbrella-beach"></i></div>
+          <p>beach</p>
+        </div>
+      </a>
+      
+    </div>
+    <div class="scroll-indicator right-indicator ml-3">&gt;</div> <!-- Right indicator -->
+  </div>
+  <div class="tax-toggle col-xl-3 col-lg-4 col-md-6 col-sm-9 ">
+    <div class="form-check-reverse form-switch">
+      <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+      <label class="form-check-label" for="flexSwitchCheckDefault">Display total after including taxes</label>
+    </div>
+  </div>  
+</div>
+
+
+
+<div class="AllCard row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3 ">
+  <% for(let listing of listings){ %>
+  <a href="/listings/<%= listing._id %>" class="listing-link">
+    <div class="card col  listing-card">
+      <img class="card-img-top index-img" src="<%= listing.img.url %>" alt="Card image cap" style="height: 20rem;">
+      <div class="card-img-overlay"></div>
+      <div class="card-body ">
+        <p class="card-text"><b>
+            <%=listing.title%>
+          </b><br>
+          &#x20b9 <%=listing.cost.toLocaleString("en-IN")%> /Night
+          <i class="tax-info"> +18% GST</i>
+        </p>
+      </div>
+    </div>
+  </a>
+  <% } %>
+</div>
+
+<script>
+  let taxButton = document.getElementsByClassName("tax-toggle");
+  console.log(taxButton);
+  taxButton[0].addEventListener("click",()=>{
+    let taxInfo = document.getElementsByClassName("tax-info");
+    console.log(taxInfo);
+    for(let info of taxInfo) {
+      if(info.style.display != "inline") {
+        info.style.display = "inline";
+      } else {
+        info.style.display = "none";
+      }
+    }
+  });
+  const filters = document.querySelector('#filters');
+  const leftIndicator = document.querySelector('.left-indicator');
+  const rightIndicator = document.querySelector('.right-indicator');
+
+  // Function to check overflow and toggle indicators
+  function checkOverflow() {
+    // Check if the content is overflowing horizontally
+    if (filters.scrollWidth > filters.clientWidth) {
+      rightIndicator.style.display = 'flex'; // Show right indicator if content overflows
+    } else {
+      rightIndicator.style.display = 'none';
+    }
+
+    // Check if the content has been scrolled past the beginning
+    if (filters.scrollLeft > 0) {
+      leftIndicator.style.display = 'flex'; // Show left indicator if scrolled past start
+    } else {
+      leftIndicator.style.display = 'none';
+    }
+  }
+
+  // Attach event listeners
+  filters.addEventListener('scroll', checkOverflow);
+  window.addEventListener('resize', checkOverflow);
+
+  // Initial check
+  checkOverflow();
+
+  // Event listeners for scrolling on indicator click
+  leftIndicator.addEventListener('click', () => {
+    filters.scrollBy({ left: -100, behavior: 'smooth' });
+  });
+
+  rightIndicator.addEventListener('click', () => {
+    filters.scrollBy({ left: 100, behavior: 'smooth' });
+  });
+
+</script>
