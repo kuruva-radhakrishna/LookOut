@@ -90,6 +90,7 @@ async function main() {
 });
 }
 
+app.get("/",(req,res)=>res.redirect("/listings"));
 app.use("/listings", listingsRoute);
 app.use("/listings/:id/reviews", reviewRoute);
 app.use("/", userRoute);
