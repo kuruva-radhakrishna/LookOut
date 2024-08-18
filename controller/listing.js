@@ -38,11 +38,12 @@ module.exports.search = wrapAsync(async (req,res)=>{
     if (keywords.length > 0) {
         listings = await Listing.find({ $and: searchConditions });
     } else {
-        listings = await Listing.find({}); // Return all listings if no search query is provided
+        listings = await Listing.find({}); 
     }
     if(listings.length === 0) {
         req.flash("error","listings based on your search doesn't exist");
         res.redirect("/listings");
+        return;
     }
     res.render("listings/index", { listings });
 });
@@ -71,6 +72,7 @@ module.exports.show =wrapAsync(async (req,res)=>{
     if(!listing){
         req.flash("error","listing doesn't exist");
         res.redirect("/listings");
+        return;
     } else {  
         return res.render("Listings/show.ejs",{listing});
     }
@@ -81,11 +83,13 @@ module.exports.editForm = wrapAsync(async (req,res)=>{
     let listing=await Listing.findById(id);
     if(!listing){
         req.flash("error","listings doesn't exist");
-        return res.redirect("/listings");
+        res.redirect("/listings");
+        return;
     } else {
         let originalUrl = listing.img.url;
         originalUrl = originalUrl.replace("/upload","/upload/w_100,h_250");
-        return res.render("Listings/edit.ejs",{listing,originalUrl});
+        res.render("Listings/edit.ejs",{listing,originalUrl});
+        return;
     }
 });
 
@@ -111,6 +115,6 @@ module.exports.destroy = wrapAsync(async (req,res)=>{
         return res.redirect("/listings");
     } else {
         req.flash("success","Listing deleted successfully");
+        return res.redirect("/listings");
     }
-    return res.redirect("/listings");
 });
