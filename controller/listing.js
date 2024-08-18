@@ -44,7 +44,7 @@ module.exports.search = wrapAsync(async (req,res)=>{
         req.flash("error","listings based on your search doesn't exist");
         res.redirect("/listings");
     }
-    res.render("listings/index", { listings });
+    res.render("Listings/index", { listings });
 });
 
 module.exports.newListing = wrapAsync(async (req,res,next)=>{ 
