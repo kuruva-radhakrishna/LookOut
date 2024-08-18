@@ -24,6 +24,122 @@ body {
   color: #222 !important;
 }
 
+.search-btn{
+  background-color: rgba(252, 45, 45, 0.783);
+  color: white;
+  padding: 0 1rem;
+  border-radius: 1rem;
+  width : 10rem;
+}
+.search-btn:hover{
+  background-color: rgba(252, 45, 45, 0.783);
+  color: white;
+}
+.search-btn i {
+  display: inline;
+  margin-right: 0.5rem;
+}
+.search-inp{
+  padding : 0.5 3rem;
+  border-radius: 1rem;
+  font-size: 1rem;
+}
+
+.navbar-collapse {
+  background-color: #ffffff; /* Solid background color */
+  opacity: 1; /* Ensure full opacity */
+}
+
+/* 
+index */
+
+.index{
+  display: flex;
+  align-items: center;
+}
+.scroll-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#filters {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 10px;
+  scroll-behavior: smooth; /* Smooth scrolling */
+}
+#filters a.nav-link {
+  flex: 0 0 auto;
+  margin-right: 15px;
+}
+
+#filters .filter {
+  text-align: center;
+  padding: 10px;
+  border-radius: 1rem;
+  transition: background-color 0.3s ease;
+  margin: 0 1rem;
+}
+#filters .filter i{
+  opacity: 0.7;
+}
+
+#filters .filter i:hover {
+  opacity: 1;
+}
+
+/* Hide scrollbar */
+#filters::-webkit-scrollbar {
+  display: none;
+}
+
+#filters {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Scroll indicators */
+.scroll-indicator {
+  display: none; /* Initially hidden */
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: white;
+  color: black;
+  padding: 5px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tax-toggle{
+  padding: 1rem;
+  border: 1px solid black;
+  border-radius: 1rem;
+  text-align: center;
+  vertical-align: center;
+  height: 3.5rem;
+}
+.left-indicator {
+  left: 0;
+}
+
+.right-indicator {
+  right: 0;
+}
+
+/* Show indicators on small screens */
+@media screen and (max-width: 768px) {
+  .scroll-indicator {
+    display: block;
+  }
+}
+
+
 /* footer */
 
 .footer-info {

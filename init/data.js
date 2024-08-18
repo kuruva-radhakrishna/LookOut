@@ -95,7 +95,7 @@ const ListingsData = [
     place: "Udaipur",
     country: "India",
     category: "trending",
-    owner: "66c06c8e21603649dfabd576",
+    owner: "66aba195cd81fbf6b6bf6809",
     geometry: {
       type: "Point",
       coordinates: [73.712479, 24.585445],
@@ -248,7 +248,7 @@ const ListingsData = [
     place: "Kovalam",
     country: "India",
     category: "beaches",
-    owner: "66c06c8e21603649dfabd576",
+    owner: "66aba195cd81fbf6b6bf6809",
     geometry: {
       type: "Point",
       coordinates: [76.971157, 8.399496],
@@ -350,7 +350,7 @@ const ListingsData = [
     place: "Jaisalmer, Rajasthan",
     country: "India",
     category: "mansion",
-    owner: "66c06c8e21603649dfabd576",
+    owner: "66aba195cd81fbf6b6bf6809",
     geometry: {
       type: "Point",
       coordinates: [70.916462, 26.915748],
@@ -452,7 +452,7 @@ const ListingsData = [
     place: "Ooty, Tamil Nadu",
     country: "India",
     category: "mountains",
-    owner: "66c06c8e21603649dfabd576",
+    owner: "66aba195cd81fbf6b6bf6809",
     geometry: {
       type: "Point",
       coordinates: [76.693096, 11.406414],
@@ -554,7 +554,7 @@ const ListingsData = [
     place: "Udaipur, Rajasthan",
     country: "India",
     category: "castles",
-    owner: "66c06c8e21603649dfabd576",
+    owner: "66aba195cd81fbf6b6bf6809",
     geometry: {
       type: "Point",
       coordinates: [73.6823, 24.5710],
@@ -639,7 +639,7 @@ const ListingsData = [
     place: "Bengaluru, Karnataka",
     country: "India",
     category: "pools",
-    owner: "66c06c8e21603649dfabd576",
+    owner: "66aba195cd81fbf6b6bf6809",
     geometry: {
       type: "Point",
       coordinates: [77.5946, 12.9716],

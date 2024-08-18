@@ -32,17 +32,17 @@
         </div>    
         
         <div class="row">
-            <div class="mb-3 col-md-4" >
-                <label for="Price" class="form-label">Price</label>
-                <input name="listing[cost]" type="number"  placeholder="Price" class="form-control" required>
+            <div class="mb-3 col-md-6">
+                <label for="Place" class="form-label">Location</label>
+                <input name="listing[place]" type="text"  placeholder="Place" class="form-control" required>
                 <div class="invalid-feedback">
-                    Enter a price
+                    Enter place of listing
                 </div>
                 <div class="valid-feedback">
-                    price looks good
+                    looks good
                 </div>
             </div>
-            <div class="mb-3 col-md-8" >
+            <div class="mb-3 col-md-6" >
                 <label for="country" class="form-label">Country</label>
                 <input name="listing[country]" type="text" placeholder="Country" class="form-control" required>
                 <div class="invalid-feedback">
@@ -53,15 +53,29 @@
                 </div>
             </div>
         </div>
-        <div class="mb-3">
-            <label for="Place" class="form-label">Location</label>
-            <input name="listing[place]" type="text"  placeholder="Place" class="form-control" required>
-            <div class="invalid-feedback">
-                Enter place of listing
+        <div class="row">
+            <div class="mb-3 col-md-6" >
+                <label for="Price" class="form-label">Price</label>
+                <input name="listing[cost]" type="number"  placeholder="Price" class="form-control" required>
+                <div class="invalid-feedback">
+                    Enter a price
+                </div>
+                <div class="valid-feedback">
+                    price looks good
+                </div>
             </div>
-            <div class="valid-feedback">
-                looks good
+            <div class="mb-3 col-md-6">
+                <label for="category" class="form-label">Category</label>
+                <select name="category" form="myForm" class="form-control" required>
+                    <option value="castles">Castle</option>
+                    <option value="beaches">Near a Beach</option>
+                    <option value="mountains">Near a mountain</option>
+                    <option value="mansion">Mansion</option>
+                    <option value="rooms">A small room</option>
+                    <option value="pools">Have a pool</option>
+                </select>
             </div>
+            
         </div>
         <button class="btn btn-dark edit-btn mb-3">Add</button>
     </form>

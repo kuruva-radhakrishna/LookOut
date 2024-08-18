@@ -6,7 +6,7 @@
 <body>
     
     <div class="row">
-        <div class="col-6 offset-3">
+        <div class="col-12 col-md-10 offset-md-1  col-lg-8 offset-lg-2 col-xl-6 offset-xl-3 mt-3">
             <h3><b><%=listing.title%></b><br></h3>
             <div class="card listing-card" >
                 <img src="<%=listing.img.url%>" class="card-img-top show-img" >
@@ -21,21 +21,21 @@
         </div>
 
         <% if(currUser && listing.owner._id.equals(currUser._id)) { %>
-            <div class="btns col-6 offset-3 mb-3">
+            <div class="col-12 col-md-10 offset-md-1  col-lg-8 offset-lg-2 col-xl-6 offset-xl-3 btns mb-3">
                 <form method="get" action="/listings/<%=listing._id%>/edit">
                     <button class="btn btn-dark edit-btn">Edit</button>
                 </form>
                 <form method="post" action="/listings/<%=listing._id%>/delete?_method=DELETE">
                     <button class="btn btn-dark offset-5">Delete</button>
                 </form>
-                <hr>
             </div>
         <% } %>
 
         
 
         
-            <div class="col-6 offset-3">
+            <div class="col-12 col-md-10 offset-md-1  col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+                <hr>
                 <h4>Write a review</h4>
                 <form class="needs-validation mt-3" novalidate method="post" action="/listings/<%= listing._id %>/reviews">
                     <fieldset class="starability-slot">
@@ -61,7 +61,7 @@
         
         <% if(listing.reviews.length) { %>
             
-            <div class="row col-6 offset-3">
+            <div class="col-12 col-md-10 offset-md-1  col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
                 <hr>
                 <p><b>All Reviews</b></p>
                 <% for(let review of listing.reviews){ %>
@@ -78,7 +78,7 @@
                 <% } %>
             </div>
         <% } %>
-        <div class="row col-6 offset-3 mb-3">
+        <div class="col-12 col-md-10 offset-md-1  col-lg-8 offset-lg-2 col-xl-6 offset-xl-3 mb-3">
             <p><b>Where you will be </b></p>
             <div id="map"></div>
         </div>
