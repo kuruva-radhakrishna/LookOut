@@ -45,7 +45,7 @@ module.exports.search = wrapAsync(async (req,res)=>{
         res.redirect("/listings");
         return;
     }
-    res.render("listings/index", { listings });
+    res.render("Listings/index", { listings });
 });
 
 module.exports.newListing = wrapAsync(async (req,res,next)=>{ 
