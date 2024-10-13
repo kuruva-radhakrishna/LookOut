@@ -24,10 +24,6 @@ router.get("/filter/:category", filter);
 
 router.get("/search",search);
 
-
-
-
-
 router.get("/new", isLoggedin,newListingForm );
 
 router.get("/:id",show);

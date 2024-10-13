@@ -41,9 +41,9 @@ checkOverflow();
 
 // Event listeners for scrolling on indicator click
 leftIndicator.addEventListener("click", () => {
-  filters.scrollBy({ left: -100, behavior: "smooth" });
+  filters.scrollBy({ left: -94, behavior: "smooth" });
 });
 
 rightIndicator.addEventListener("click", () => {
-  filters.scrollBy({ left: 100, behavior: "smooth" });
+  filters.scrollBy({ left: 94, behavior: "smooth" });
 });

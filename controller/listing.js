@@ -15,7 +15,6 @@ module.exports.newListingForm = wrapAsync(async (req,res)=>{
 
 module.exports.filter = wrapAsync(async  (req,res)=>{
     let {category }= req.params;
-    console.log(category);
     let listings = await Listing.find({category});
     res.render("Listings/index.ejs",{listings});
 });
@@ -23,7 +22,6 @@ module.exports.filter = wrapAsync(async  (req,res)=>{
 module.exports.search = wrapAsync(async (req,res)=>{
     const searchQuery = req.query.search || ""; // Extract the search query from the query string
     const keywords = searchQuery.split(" "); // Split the query into individual keywords
-    console.log(searchQuery);
 
     const searchConditions = keywords.map(keyword => ({
         $or: [
@@ -49,7 +47,6 @@ module.exports.search = wrapAsync(async (req,res)=>{
 });
 
 module.exports.newListing = wrapAsync(async (req,res,next)=>{ 
-    console.log(req.body);
     let newListing = new Listing(req.body.listing);
     let filename = req.file.filename;
     let url =  req.file.path;
@@ -60,7 +57,7 @@ module.exports.newListing = wrapAsync(async (req,res,next)=>{
                     limit: 1
                 }).send();
     newListing.geometry=result.body.features[0].geometry;
-    console.log(newListing);
+    
     await newListing.save();
     req.flash("success","New Listing created successfully");
     return res.redirect("/listings");
@@ -97,7 +94,6 @@ module.exports.edit = wrapAsync(async (req,res)=>{
     let {id}=req.params;
     let listing=await Listing.findByIdAndUpdate(id,{...req.body});
     if(typeof req.file!="undefined"){
-        console.log(req.file);
         let filename = req.file.filename;
         let url =  req.file.path;
         listing.img = {filename,url};

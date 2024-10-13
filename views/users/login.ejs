@@ -1,7 +1,7 @@
 <% layout("/layouts/boilerplate.ejs") %>
 
-<div class="row">
-  <div class="col-6 offset-3">
+<div class="row mt-5">
+  <div class="col-xl-6 col-lg-8 col-sm-10 offset-sm-1 offset-lg-2 offset-xl-3">
     <h4 class="mt-3">Login</h4>
     <form method="post" action="/login" novalidate class="needs-validation mt-3">
       <div class="mb-3">
@@ -19,7 +19,10 @@
         <label for="password" class="form-label">password</label>
         <input name="password" type="password" class="form-control" required />
         <div class="valid-feedback">looks good</div>
-        <button class="btn btn-success mt-3">Login</button>
+        <div class="row" style="display: flex;align-items: baseline;margin-left: 5px;">
+          <button class="btn btn-success mt-3 col-2 ">Login</button>
+          <p class="col-10">Don't have an account <a href="/signup">Signup</a></p>
+        </div>
       </div>
     </form>
   </div>

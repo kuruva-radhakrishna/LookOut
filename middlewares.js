@@ -10,13 +10,11 @@ module.exports.isLoggedin = (req,res,next)=>{
         req.flash("error","you should be logged in");
         res.redirect("/login");
     } else {
-        console.log(req.user);
         next();
     }
 };
 module.exports.savePathReview =  (req,res,next)=>{
     let {id} = req.params;
-    console.log("hi" , "   ",id);
     res.redirect(`/listinngs/${id}`);
     next();
 }
@@ -39,7 +37,6 @@ module.exports.isOwner = async (req,res,next)=>{
 };
 
 module.exports.isReviewOwner = async (req,res,next)=>{
-    console.log(req.params);
     let {reviewId} = req.params;
     let review = await Review.findById(reviewId).populate("author");
     if(review.author.username === res.locals.currUser.username ){

@@ -61,7 +61,7 @@ index */
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 #filters {
@@ -70,10 +70,11 @@ index */
   white-space: nowrap;
   padding: 10px;
   scroll-behavior: smooth; /* Smooth scrolling */
+  width: 100%;
+  justify-content: space-around;
 }
 #filters a.nav-link {
   flex: 0 0 auto;
-  margin-right: 15px;
 }
 
 #filters .filter {
@@ -81,7 +82,8 @@ index */
   padding: 10px;
   border-radius: 1rem;
   transition: background-color 0.3s ease;
-  margin: 0 1rem;
+  margin-right: 10px;
+  max-width: 80px!important;
 }
 #filters .filter i{
   opacity: 0.7;
