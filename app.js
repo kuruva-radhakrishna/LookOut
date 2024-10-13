@@ -4,7 +4,7 @@ if(process.env.NODE_ENV != "production"){
 
 
 const express = require("express");
-const port = 3000;
+const port = process.env.PORT || 4000;
 const path = require("path");
 const methodOverride = require("method-override");
 const app = express();
