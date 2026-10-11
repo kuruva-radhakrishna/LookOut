@@ -10,6 +10,8 @@ import ListingForm from './pages/ListingForm'
 import Auth from './pages/Auth'
 import Checkout from './pages/Checkout'
 import Trips from './pages/Trips'
+import Saved from './pages/Saved'
+import { FavoritesProvider } from './context/FavoritesContext'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -36,6 +38,7 @@ export default function App() {
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
+          <FavoritesProvider>
           <ScrollToTop />
           <Navbar />
           <main>
@@ -45,6 +48,7 @@ export default function App() {
               <Route path="/listings/:id" element={<ListingDetail />} />
               <Route path="/listings/:id/edit" element={guard(<ListingForm />)} />
               <Route path="/checkout/:id" element={guard(<Checkout />)} />
+              <Route path="/saved" element={guard(<Saved />)} />
               <Route path="/bookings" element={guard(<Trips />)} />
               <Route path="/trips" element={<Navigate to="/bookings" replace />} />
               <Route path="/login" element={<Auth mode="login" />} />
@@ -55,6 +59,7 @@ export default function App() {
           <footer className="footer">
             <div className="container">© {new Date().getFullYear()} LookOut · Find your next stay</div>
           </footer>
+          </FavoritesProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>

@@ -37,8 +37,11 @@ app.get("/api/health", (_req, res) =>
   })
 );
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/listings/:id/reviews", require("./routes/reviews").listingRouter);
 app.use("/api/listings", require("./routes/listings"));
 app.use("/api/reviews", require("./routes/reviews"));
+app.use("/api/media", require("./routes/media"));
+app.use("/api/favorites", require("./routes/favorites"));
 app.use("/api/bookings", require("./routes/bookings"));
 
 app.use(notFound);

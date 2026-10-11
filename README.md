@@ -77,9 +77,16 @@ Create a free M0 cluster, a database user, and allow network access `0.0.0.0/0` 
 | GET | `/api/listings/places?q` | destination suggestions with stay counts |
 | GET | `/api/listings/facets` | price bounds and category counts for the filter UI |
 | GET | `/api/listings/:id/similar?limit` | "More stays like this": ranked by same place, same region, same category, similar price and rating (3 to 24, default 12) |
-| POST/PUT/DELETE | `/api/listings[/:id]` | owner only; multipart with `image` or `imageUrl` |
+| POST/PUT/DELETE | `/api/listings[/:id]` | owner only; JSON with `images: [{url}]` (1 to 10, upload them via `/api/media` first) and `primary` (index of the cover photo, default 0) |
 | GET | `/api/listings/:id/availability` | booked/held nights |
-| GET/POST | `/api/listings/:id/reviews` | |
+| GET | `/api/listings/:id/reviews?sort&limit&offset` | top-level reviews (`sort`: recent, helpful, high, low; `limit` 1-24, default 6) each with its full reply tree, plus `summary` (average, count, star distribution). Add a token to get your own `myReaction` |
+| POST | `/api/listings/:id/reviews` | `{rating, comment, images[]}`; one review per guest per listing, never on your own listing |
+| POST | `/api/reviews/:id/replies` | reply to a review or reply (up to 3 levels deep); doesn't affect the rating |
+| POST | `/api/reviews/:id/reaction` | `{value: "like" \| "dislike" \| "none"}`; one per person, not on your own post |
+| DELETE | `/api/reviews/:id` | author only; removes the thread beneath it |
+| POST | `/api/media` | upload up to 10 images (multipart field `images`, 5 MB each); returns `[{url, filename}]` |
+| GET | `/api/media/:id` | the stored image (public, cacheable) |
+| GET/PUT/DELETE | `/api/favorites[/:listingId]`, `/api/favorites/ids` | saved stays |
 | POST | `/api/bookings` | hold dates + create payment order (409 if taken) |
 | POST | `/api/bookings/:id/verify` | confirm after payment |
 | POST | `/api/bookings/:id/cancel` | releases dates; full refund if >= 48h before check-in |

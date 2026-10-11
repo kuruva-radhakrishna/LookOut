@@ -74,13 +74,13 @@ test("paging: limit is a multiple of three, offset walks the whole set without g
 });
 
 test("limit is snapped to a multiple of three and clamped", async () => {
-  const cases = { 10: 9, 12: 12, 13: 12, 2: 3, 0: 12, 100: 48, abc: 12, "-6": 3 };
+  const cases = { 10: 9, 12: 12, 13: 12, 2: 3, 0: 15, 100: 48, abc: 15, "-6": 3 };
   for (const [sent, expected] of Object.entries(cases)) {
     const r = await get(`?limit=${sent}`);
     assert.equal(r.body.limit, expected, `limit=${sent} -> ${r.body.limit}, expected ${expected}`);
     assert.equal(r.body.limit % 3, 0);
   }
-  assert.equal((await get("")).body.limit, 12, "default");
+  assert.equal((await get("")).body.limit, 15, "default");
 });
 
 test("filters: category, price range, guests, rating combine", async () => {

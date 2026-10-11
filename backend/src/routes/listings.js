@@ -4,17 +4,22 @@ const Listing = require("../models/Listing");
 const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const BookedNight = require("../models/BookedNight");
+const Favorite = require("../models/Favorite");
 const AppError = require("../utils/AppError");
 const { requireAuth } = require("../middleware/auth");
 const validate = require("../middleware/validate");
-const { upload, uploadBuffer } = require("../utils/upload");
 const { geocode } = require("../utils/geocode");
 const { parseDay, today } = require("../utils/dates");
 const bookings = require("../services/bookingService");
 const listingSearch = require("../services/listingSearch");
+const { MAX_IMAGES, normalizeImages, primaryOf, withImages } = require("../services/listingImages");
 
 const router = express.Router();
 
+const imageItem = Joi.object({
+  url: Joi.string().trim().max(500).uri({ scheme: ["http", "https"] }).required(),
+  filename: Joi.string().trim().max(200).allow(""),
+}).unknown(true); // client may echo back attribution fields; the server only trusts what it already stores
 const listingFields = {
   title: Joi.string().trim().max(80),
   description: Joi.string().trim().allow("").max(3000),
@@ -23,7 +28,9 @@ const listingFields = {
   country: Joi.string().trim(),
   category: Joi.string().valid(...Listing.CATEGORIES),
   maxGuests: Joi.number().integer().min(1).max(20),
-  imageUrl: Joi.string().trim().uri({ scheme: ["http", "https"] }).allow(""),
+  images: Joi.array().items(imageItem).min(1).max(MAX_IMAGES),
+  primary: Joi.number().integer().min(0).max(MAX_IMAGES - 1), // index into `images` of the primary photo (default 0)
+  imageUrl: Joi.string().trim().uri({ scheme: ["http", "https"] }).allow(""), // older single-photo form
 };
 const createSchema = Joi.object({
   ...listingFields,
@@ -34,15 +41,19 @@ const createSchema = Joi.object({
 });
 const updateSchema = Joi.object(listingFields);
 
-const reviewSchema = Joi.object({
-  rating: Joi.number().integer().min(1).max(5).required(),
-  comment: Joi.string().trim().min(1).max(1000).required(),
-});
-
-// Multipart bodies arrive as strings and `listing` fields are sent flat (title, cost, ...).
-async function applyImage(req, doc) {
-  if (req.file) doc.img = await uploadBuffer(req.file.buffer);
-  else if (req.body.imageUrl) doc.img = { url: req.body.imageUrl, filename: "external" };
+/** Applies `images` / `primary` (or the legacy `imageUrl`) from a request body to a listing document; strips them from the body. */
+function applyImages(listing, body) {
+  const list = body.images || (body.imageUrl ? [{ url: body.imageUrl }] : null);
+  const primary = body.primary;
+  delete body.images;
+  delete body.primary;
+  delete body.imageUrl;
+  if (!list) return;
+  // photos the listing already has (their attribution is carried over); older listings only have `img`
+  const existing = listing.images?.length ? listing.images : listing.img?.url ? [listing.img] : [];
+  const images = normalizeImages(list, primary, existing);
+  listing.images = images;
+  listing.img = primaryOf(images);
 }
 
 async function loadOwned(req) {
@@ -50,17 +61,6 @@ async function loadOwned(req) {
   if (!listing) throw new AppError(404, "Listing not found");
   if (String(listing.owner) !== String(req.user._id)) throw new AppError(403, "You don't own this listing");
   return listing;
-}
-
-async function refreshRating(listingId) {
-  const [agg] = await Review.aggregate([
-    { $match: { listing: listingId } },
-    { $group: { _id: null, avg: { $avg: "$rating" }, count: { $sum: 1 } } },
-  ]);
-  await Listing.findByIdAndUpdate(listingId, {
-    ratingAvg: agg ? Math.round(agg.avg * 10) / 10 : 0,
-    ratingCount: agg ? agg.count : 0,
-  });
 }
 
 router.get("/", async (req, res) => {
@@ -81,28 +81,30 @@ router.get("/:id/similar", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const listing = await Listing.findById(req.params.id).populate("owner", "username").lean();
+  const listing = await Listing.findById(req.params.id).populate("owner", "username createdAt").lean();
   if (!listing) throw new AppError(404, "Listing not found");
-  res.json(listing);
+  res.json(withImages(listing));
 });
 
-router.post("/", requireAuth, upload.single("image"), validate(createSchema), async (req, res) => {
-  const listing = new Listing({ ...req.body, owner: req.user._id });
-  await applyImage(req, listing);
-  if (!listing.img?.url) throw new AppError(400, "Please add a photo (upload or image URL)");
+router.post("/", requireAuth, validate(createSchema), async (req, res) => {
+  const body = { ...req.body };
+  const listing = new Listing({ ...body, images: undefined, owner: req.user._id });
+  applyImages(listing, body);
+  if (!listing.img?.url) throw new AppError(400, "Please add at least one photo");
   listing.geometry = (await geocode(`${listing.place}, ${listing.country}`)) || undefined;
   await listing.save();
-  res.status(201).json(listing);
+  res.status(201).json(withImages(listing.toObject()));
 });
 
-router.put("/:id", requireAuth, upload.single("image"), validate(updateSchema), async (req, res) => {
+router.put("/:id", requireAuth, validate(updateSchema), async (req, res) => {
   const listing = await loadOwned(req);
-  const placeChanged = (req.body.place && req.body.place !== listing.place) || (req.body.country && req.body.country !== listing.country);
-  Object.assign(listing, req.body);
-  await applyImage(req, listing);
+  const body = { ...req.body };
+  const placeChanged = (body.place && body.place !== listing.place) || (body.country && body.country !== listing.country);
+  applyImages(listing, body);
+  Object.assign(listing, body);
   if (placeChanged) listing.geometry = (await geocode(`${listing.place}, ${listing.country}`)) || listing.geometry;
   await listing.save();
-  res.json(listing);
+  res.json(withImages(listing.toObject()));
 });
 
 router.delete("/:id", requireAuth, async (req, res) => {
@@ -112,6 +114,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
   await Promise.all([
     Listing.deleteOne({ _id: listing._id }),
     Review.deleteMany({ listing: listing._id }),
+    Favorite.deleteMany({ listing: listing._id }),
     BookedNight.deleteMany({ listing: listing._id }),
     Booking.updateMany({ listing: listing._id, status: "pending" }, { status: "cancelled" }),
   ]);
@@ -125,19 +128,5 @@ router.get("/:id/availability", async (req, res) => {
   res.json({ booked: await bookings.bookedDays(req.params.id, from, to) });
 });
 
-router.get("/:id/reviews", async (req, res) => {
-  const reviews = await Review.find({ listing: req.params.id }).sort({ createdAt: -1 }).populate("author", "username").lean();
-  res.json(reviews);
-});
-
-router.post("/:id/reviews", requireAuth, validate(reviewSchema), async (req, res) => {
-  const listing = await Listing.findById(req.params.id);
-  if (!listing) throw new AppError(404, "Listing not found");
-  if (String(listing.owner) === String(req.user._id)) throw new AppError(400, "You can't review your own listing");
-  const review = await Review.create({ ...req.body, listing: listing._id, author: req.user._id });
-  await refreshRating(listing._id);
-  res.status(201).json(await review.populate("author", "username"));
-});
-
+// Reviews (with replies, photos and reactions) are in routes/reviews.js, mounted at /api/listings/:id/reviews.
 module.exports = router;
-module.exports.refreshRating = refreshRating;

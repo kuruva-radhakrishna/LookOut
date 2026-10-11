@@ -6,7 +6,13 @@ const listingSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true, maxlength: 80 },
     description: { type: String, default: "" },
+    // The primary photo, denormalised from `images` so cards, bookings and search results can keep reading `img`.
     img: { url: String, filename: String, credit: String, license: String, source: String }, // credit/license/source: photo attribution
+    // All photos, in display order, exactly one flagged primary. Older listings only have `img` (the API fills this in).
+    images: {
+      type: [{ url: String, filename: String, credit: String, license: String, source: String, primary: Boolean }],
+      default: undefined,
+    },
     cost: { type: Number, required: true, min: 1 }, // rupees per night
     place: { type: String, required: true },
     country: { type: String, required: true },

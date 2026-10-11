@@ -16,13 +16,13 @@ const regionOf = (place) => String(place).split(',').pop().trim()
 /** "More stays like this": a horizontally scrolling row with left/right buttons. Renders nothing if there is nothing similar. */
 export default function SimilarListings({ listing }) {
   const [items, setItems] = useState(null)
-  const [edge, setEdge] = useState({ left: false, right: false })
+  const [edge, setEdge] = useState({ left: false, right: false, page: 1, pages: 1 })
   const track = useRef(null)
 
   useEffect(() => {
     let live = true
     api
-      .get(`/listings/${listing._id}/similar?limit=12`)
+      .get(`/listings/${listing._id}/similar?limit=15`)
       .then((r) => live && setItems(r))
       .catch(() => live && setItems([]))
     return () => {
@@ -33,7 +33,15 @@ export default function SimilarListings({ listing }) {
   const measure = useCallback(() => {
     const el = track.current
     if (!el) return
-    setEdge({ left: el.scrollLeft > 4, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 })
+    // the gaps between cards make scrollWidth/clientWidth slightly more than a whole number of pages, hence the -0.1
+    const pages = Math.max(1, Math.ceil(el.scrollWidth / el.clientWidth - 0.1))
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4
+    setEdge({
+      left: el.scrollLeft > 4,
+      right: !atEnd,
+      pages,
+      page: atEnd ? pages : Math.min(pages, Math.round(el.scrollLeft / el.clientWidth) + 1),
+    })
   }, [])
 
   useEffect(() => {
@@ -62,6 +70,11 @@ export default function SimilarListings({ listing }) {
           </p>
         </div>
         <div className="car-btns">
+          {edge.pages > 1 && (
+            <span className="car-count" aria-live="polite">
+              {edge.page} / {edge.pages}
+            </span>
+          )}
           <button className="car-btn" onClick={() => go(-1)} disabled={!edge.left} aria-label="Previous stays">
             <ChevronLeft size={18} />
           </button>

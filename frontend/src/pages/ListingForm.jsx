@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ImagePlus, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import ImageUploader from '../components/ImageUploader'
 import Spinner from '../components/Spinner'
 
 const CATEGORIES = ['trending', 'rooms', 'mansion', 'castles', 'pools', 'beaches', 'mountains', 'farmhouses']
-const EMPTY = { title: '', description: '', cost: '', place: '', country: 'India', category: 'trending', maxGuests: 4, imageUrl: '' }
+const EMPTY = { title: '', description: '', cost: '', place: '', country: 'India', category: 'trending', maxGuests: 4 }
+const MAX_PHOTOS = 10
 
 export default function ListingForm() {
   const { id } = useParams()
@@ -16,16 +18,11 @@ export default function ListingForm() {
   const toast = useToast()
   const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY)
-  const [file, setFile] = useState(null)
-  const [preview, setPreview] = useState('')
-  const [uploads, setUploads] = useState(true)
+  const [images, setImages] = useState([]) // [{ url, filename }] in display order
+  const [primary, setPrimary] = useState(0) // index into `images` of the cover photo
   const [loading, setLoading] = useState(editing)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    api.get('/health').then((h) => setUploads(h.uploads)).catch(() => {})
-  }, [])
 
   useEffect(() => {
     if (!editing) return
@@ -33,11 +30,12 @@ export default function ListingForm() {
       .get(`/listings/${id}`)
       .then((l) => {
         if (l.owner?._id !== user.id) {
-          toast.error("You can only edit your own listings")
+          toast.error('You can only edit your own listings')
           return navigate(`/listings/${id}`, { replace: true })
         }
-        setForm({ ...EMPTY, ...l, imageUrl: '' })
-        setPreview(l.img?.url || '')
+        setForm({ ...EMPTY, title: l.title, description: l.description || '', cost: l.cost, place: l.place, country: l.country, category: l.category, maxGuests: l.maxGuests })
+        setImages(l.images.map((i) => ({ url: i.url, filename: i.filename }))) // the API lists the cover photo first
+        setPrimary(0)
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
@@ -46,26 +44,14 @@ export default function ListingForm() {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
-  function onFile(e) {
-    const f = e.target.files?.[0]
-    if (!f) return
-    if (f.size > 5 * 1024 * 1024) return setError('Image must be under 5 MB')
-    setError('')
-    setFile(f)
-    setPreview(URL.createObjectURL(f))
-  }
-
   async function submit(e) {
     e.preventDefault()
     setError('')
-    if (!editing && !file && !form.imageUrl) return setError('Please add a photo')
+    if (!images.length) return setError('Add at least one photo')
     setBusy(true)
     try {
-      const fd = new FormData()
-      ;['title', 'description', 'cost', 'place', 'country', 'category', 'maxGuests'].forEach((k) => fd.append(k, form[k]))
-      if (file) fd.append('image', file)
-      else if (form.imageUrl) fd.append('imageUrl', form.imageUrl)
-      const saved = editing ? await api.put(`/listings/${id}`, fd) : await api.post('/listings', fd)
+      const body = { ...form, cost: Number(form.cost), maxGuests: Number(form.maxGuests), images, primary }
+      const saved = editing ? await api.put(`/listings/${id}`, body) : await api.post('/listings', body)
       toast.success(editing ? 'Listing updated' : 'Your stay is live!')
       navigate(`/listings/${saved._id}`)
     } catch (err) {
@@ -91,23 +77,11 @@ export default function ListingForm() {
         </label>
 
         <div className="field">
-          <span>Photo</span>
-          <div className="upload">
-            {preview ? <img src={preview} alt="Preview" /> : <ImagePlus size={32} />}
-            <div className="upload-controls">
-              {uploads && <input type="file" accept="image/png,image/jpeg,image/webp" onChange={onFile} aria-label="Upload photo" />}
-              <input
-                type="url"
-                value={form.imageUrl}
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, imageUrl: e.target.value }))
-                  setFile(null)
-                  setPreview(e.target.value)
-                }}
-                placeholder={uploads ? 'or paste an image URL' : 'Paste an image URL (file upload is not configured)'}
-              />
-            </div>
-          </div>
+          <span>Photos</span>
+          <p className="muted small">
+            Add up to {MAX_PHOTOS}. {images.length > 1 ? 'Pick the cover photo guests see first with “Make cover”.' : 'With one photo, it is the cover photo automatically.'}
+          </p>
+          <ImageUploader images={images} onChange={setImages} primary={primary} onPrimary={setPrimary} max={MAX_PHOTOS} allowUrl />
         </div>
 
         <div className="form-grid">

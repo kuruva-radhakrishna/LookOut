@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Compass, LogIn, LogOut, Luggage, Menu, Plus, UserPlus } from 'lucide-react'
+import { Compass, Heart, LogIn, LogOut, Luggage, Menu, Plus, UserPlus } from 'lucide-react'
 import SearchBar from './SearchBar'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -62,6 +62,9 @@ export default function Navbar() {
                   <p className="menu-who">Signed in as <strong>@{user.username}</strong></p>
                   <button role="menuitem" onClick={go('/bookings')}>
                     <Luggage size={16} /> My bookings
+                  </button>
+                  <button role="menuitem" onClick={go('/saved')}>
+                    <Heart size={16} /> Saved stays
                   </button>
                   <button role="menuitem" onClick={go('/listings/new')}>
                     <Plus size={16} /> Host a stay

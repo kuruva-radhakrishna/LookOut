@@ -34,6 +34,8 @@ const env = {
     apiSecret: process.env.CLOUDINARY_API_SECRET || "",
   },
   mapboxToken: process.env.MAPBOX_TOKEN || "",
+  // Public URL of this API for links to uploaded images; defaults to the request's own host.
+  publicApiUrl: (process.env.PUBLIC_API_URL || "").replace(/\/$/, ""),
 };
 
 env.isProd = env.nodeEnv === "production";

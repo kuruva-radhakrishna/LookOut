@@ -1,6 +1,6 @@
 // The URL is the single source of truth for search state, so results are shareable and back/forward work.
-export const PAGE_SIZES = [12, 24, 36] // multiples of three: the grid is three columns wide
-export const DEFAULT_LIMIT = 12
+export const PAGE_SIZES = [15, 30, 45] // multiples of 3 and 5: whole rows in a five-column grid (and a three-column one)
+export const DEFAULT_LIMIT = 15
 
 export const SORTS = [
   { id: 'recommended', label: 'Recommended' },

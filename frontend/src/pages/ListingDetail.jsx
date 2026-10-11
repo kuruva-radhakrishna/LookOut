@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { MapPin, Pencil, Star, Trash2, Users } from 'lucide-react'
+import { MapPin, Pencil, Share2, Star, Trash2, Users } from 'lucide-react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import BookingCard from '../components/BookingCard'
 import YourStay from '../components/YourStay'
 import SimilarListings from '../components/SimilarListings'
+import Gallery from '../components/Gallery'
+import FavoriteButton from '../components/FavoriteButton'
 import { myNights } from '../lib/bookings'
 import Reviews from '../components/Reviews'
 import LocationSection from '../components/LocationSection'
@@ -74,6 +76,22 @@ export default function ListingDetail() {
   if (!listing) return <Spinner />
 
   const isOwner = !!user && listing.owner?._id === user.id
+  const cover = listing.images?.[0] || listing.img
+  const [city, ...rest] = listing.place.split(',').map((s) => s.trim())
+  const region = rest.length ? rest[rest.length - 1] : null
+
+  async function share() {
+    const url = window.location.href
+    try {
+      if (navigator.share) await navigator.share({ title: listing.title, url })
+      else {
+        await navigator.clipboard.writeText(url)
+        toast.success('Link copied')
+      }
+    } catch {
+      /* the share sheet was dismissed */
+    }
+  }
 
   return (
     <div className="container detail">
@@ -92,25 +110,31 @@ export default function ListingDetail() {
             <span className="chip">{listing.category}</span>
           </p>
         </div>
-        {isOwner && (
-          <div className="row gap">
-            <Link className="btn btn-ghost" to={`/listings/${id}/edit`}>
-              <Pencil size={16} /> Edit
-            </Link>
-            <button className="btn btn-ghost danger-text" onClick={() => setConfirmDelete(true)}>
-              <Trash2 size={16} /> Delete
-            </button>
-          </div>
-        )}
+        <div className="row gap wrap detail-actions">
+          <button className="btn btn-ghost btn-sm" onClick={share}>
+            <Share2 size={16} /> Share
+          </button>
+          <FavoriteButton id={listing._id} variant="inline" />
+          {isOwner && (
+            <>
+              <Link className="btn btn-ghost btn-sm" to={`/listings/${id}/edit`}>
+                <Pencil size={16} /> Edit
+              </Link>
+              <button className="btn btn-ghost btn-sm danger-text" onClick={() => setConfirmDelete(true)}>
+                <Trash2 size={16} /> Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <YourStay bookings={stays} onChanged={() => setVersion((v) => v + 1)} />
 
-      <img className="detail-img" src={listing.img?.url} alt={listing.title} />
-      {listing.img?.credit && (
+      <Gallery images={listing.images} title={listing.title} />
+      {cover?.credit && (
         <p className="photo-credit">
-          Photo: {listing.img.credit} · {listing.img.license} ·{' '}
-          <a href={listing.img.source} target="_blank" rel="noreferrer">
+          Cover photo: {cover.credit} · {cover.license} ·{' '}
+          <a href={cover.source} target="_blank" rel="noreferrer">
             Wikimedia Commons
           </a>
         </p>
@@ -124,6 +148,7 @@ export default function ListingDetail() {
               <strong>Hosted by @{listing.owner?.username}</strong>
               <p className="muted">
                 <Users size={14} /> Up to {listing.maxGuests} guests
+                {listing.owner?.createdAt && <> · Host since {new Date(listing.owner.createdAt).getFullYear()}</>}
               </p>
             </div>
           </div>
@@ -142,6 +167,20 @@ export default function ListingDetail() {
       </div>
 
       <SimilarListings key={listing._id} listing={listing} />
+
+      <nav className="crumbs" aria-label="Breadcrumb">
+        <Link to="/">LookOut</Link>
+        <span aria-hidden="true">›</span>
+        <Link to={`/?q=${encodeURIComponent(listing.country)}`}>{listing.country}</Link>
+        {region && (
+          <>
+            <span aria-hidden="true">›</span>
+            <Link to={`/?q=${encodeURIComponent(region)}`}>{region}</Link>
+          </>
+        )}
+        <span aria-hidden="true">›</span>
+        <Link to={`/?q=${encodeURIComponent(city)}`}>{city}</Link>
+      </nav>
 
       <ConfirmDialog
         open={confirmDelete}

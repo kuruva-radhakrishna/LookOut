@@ -5,7 +5,7 @@ const { parseDay, today, nightsBetween, MAX_NIGHTS } = require("../utils/dates")
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const DEFAULT_LIMIT = 12;
+const DEFAULT_LIMIT = 15; // fills whole rows in a 5-column grid (and a 3-column one)
 const MAX_LIMIT = 48;
 const PAGE_UNIT = 3; // grid is three columns wide, so page sizes are multiples of three
 
@@ -77,7 +77,7 @@ async function search(query) {
 
   const sort = SORTS[query.sort] || SORTS.recommended;
   const [items, total] = await Promise.all([
-    Listing.find(filter).sort(sort).skip(offset).limit(limit).lean(),
+    Listing.find(filter).select("-images").sort(sort).skip(offset).limit(limit).lean(),
     Listing.countDocuments(filter),
   ]);
   return { items, total, limit, offset, page: Math.floor(offset / limit) + 1, pages: Math.ceil(total / limit), hasMore: offset + items.length < total };
@@ -120,6 +120,7 @@ async function similar(listingId, limit = 12) {
     _id: { $ne: base._id },
     $or: [{ place: base.place }, { place: new RegExp("(^|,\\s*)" + escapeRegex(region) + "$", "i") }, { category: base.category }],
   })
+    .select("-images")
     .limit(300)
     .lean();
 
