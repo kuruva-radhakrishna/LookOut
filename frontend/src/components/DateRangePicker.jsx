@@ -16,7 +16,7 @@ function monthCells(year, month) {
  * A night is the date you sleep; check-out is the morning after your last night, so a booked date
  * can still be chosen as check-out, but never as check-in, and a stay may not span a booked night.
  */
-export default function DateRangePicker({ booked, start, end, onChange }) {
+export default function DateRangePicker({ booked, start, end, onChange, layout = 'stack' }) {
   const today = todayISO()
   const [cursor, setCursor] = useState(() => {
     const d = fromISO(start || today)
@@ -67,7 +67,7 @@ export default function DateRangePicker({ booked, start, end, onChange }) {
           <ChevronRight size={18} />
         </button>
       </div>
-      <div className="cal-months">
+      <div className={`cal-months ${layout}`}>
         {months.map(({ y, m }) => (
           <div className="cal-month" key={`${y}-${m}`}>
             <div className="cal-title">

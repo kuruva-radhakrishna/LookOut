@@ -70,7 +70,9 @@ Create a free M0 cluster, a database user, and allow network access `0.0.0.0/0` 
 | Method | Path | Notes |
 | --- | --- | --- |
 | POST | `/api/auth/signup`, `/login` | returns `{token, user}` (send as `Authorization: Bearer`) |
-| GET | `/api/listings?q&category&minPrice&maxPrice&page&limit` | paginated search |
+| GET | `/api/listings?q&category&minPrice&maxPrice&minRating&guests&checkIn&checkOut&sort&limit&offset` | search with `limit`/`offset` paging. `limit` is snapped to a multiple of 3 (3 to 48, default 12). `sort`: recommended, rating, price_asc, price_desc, newest. Dates hide stays with a booked or held night in range. Returns `items,total,limit,offset,page,pages,hasMore` |
+| GET | `/api/listings/places?q` | destination suggestions with stay counts |
+| GET | `/api/listings/facets` | price bounds and category counts for the filter UI |
 | POST/PUT/DELETE | `/api/listings[/:id]` | owner only; multipart with `image` or `imageUrl` |
 | GET | `/api/listings/:id/availability` | booked/held nights |
 | GET/POST | `/api/listings/:id/reviews` | |

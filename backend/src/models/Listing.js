@@ -25,6 +25,10 @@ const listingSchema = new mongoose.Schema(
 );
 
 listingSchema.index({ category: 1, cost: 1 });
+listingSchema.index({ cost: 1 });
+listingSchema.index({ createdAt: -1 });
+listingSchema.index({ ratingAvg: -1, ratingCount: -1 });
+listingSchema.index({ place: 1 });
 
 const Listing = mongoose.model("Listing", listingSchema);
 Listing.CATEGORIES = CATEGORIES;

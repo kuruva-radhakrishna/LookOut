@@ -11,10 +11,9 @@ const { upload, uploadBuffer } = require("../utils/upload");
 const { geocode } = require("../utils/geocode");
 const { parseDay, today } = require("../utils/dates");
 const bookings = require("../services/bookingService");
+const listingSearch = require("../services/listingSearch");
 
 const router = express.Router();
-
-const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const listingFields = {
   title: Joi.string().trim().max(80),
@@ -65,34 +64,16 @@ async function refreshRating(listingId) {
 }
 
 router.get("/", async (req, res) => {
-  const { q, category, minPrice, maxPrice } = req.query;
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(48, Math.max(1, parseInt(req.query.limit) || 12));
+  res.json(await listingSearch.search(req.query));
+});
 
-  const filter = {};
-  if (category && Listing.CATEGORIES.includes(category)) filter.category = category;
-  if (minPrice || maxPrice) {
-    filter.cost = {};
-    if (Number(minPrice) > 0) filter.cost.$gte = Number(minPrice);
-    if (Number(maxPrice) > 0) filter.cost.$lte = Number(maxPrice);
-  }
-  if (q && String(q).trim()) {
-    // every word must match somewhere (AND), each against several fields (OR)
-    filter.$and = String(q)
-      .trim()
-      .split(/\s+/)
-      .slice(0, 6)
-      .map((word) => {
-        const re = new RegExp(escapeRegex(word), "i");
-        return { $or: [{ title: re }, { description: re }, { place: re }, { country: re }, { category: re }] };
-      });
-  }
+// These must be declared before "/:id" so they are not mistaken for an id.
+router.get("/places", async (req, res) => {
+  res.json(await listingSearch.places(req.query.q));
+});
 
-  const [items, total] = await Promise.all([
-    Listing.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit).lean(),
-    Listing.countDocuments(filter),
-  ]);
-  res.json({ items, total, page, pages: Math.ceil(total / limit) });
+router.get("/facets", async (_req, res) => {
+  res.json(await listingSearch.facets());
 });
 
 router.get("/:id", async (req, res) => {
