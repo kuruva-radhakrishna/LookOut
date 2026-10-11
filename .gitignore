@@ -4,3 +4,7 @@ node_modules/
 !.env.example
 dist/
 .npm-*.log
+
+.api.*
+.web.log
+.images.log

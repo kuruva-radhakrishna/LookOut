@@ -28,7 +28,19 @@ cd backend && npm install && npm run dev:memory     # http://localhost:5000
 cd frontend && npm install && npm run dev           # http://localhost:5173
 ```
 
-With your own MongoDB: copy `backend/.env.example` to `backend/.env`, fill `MONGO_URI` and `JWT_SECRET`, then `npm run seed` and `npm run dev`. The seed creates `demo_host` (password `lookout-demo-1`, or `SEED_HOST_PASSWORD`).
+With your own MongoDB (Atlas or local): copy `backend/.env.example` to `backend/.env`, fill `MONGO_URI` and `JWT_SECRET`, then seed and run:
+
+```bash
+cd backend
+npm run seed -- --reset   # 500 listings across ~75 places in India, owned by 8 demo hosts (password lookout-demo-1)
+npm run dev
+```
+
+### Seed data
+`scripts/lib/places.js` defines each destination (coordinates, price tier, landmarks, suitable categories). Prices follow the place tier x category x comfort level (budget to luxury), and each description is generated from the same inputs, so a luxury Udaipur palace costs far more than a budget room in Kasol and says why. Every listing has its **own** photo, taken from Wikimedia Commons for that place and category; `scripts/seed-images.json` holds the URLs with author and licence, which the listing page shows as attribution. To rebuild the image list: `node scripts/build-images.js`.
+
+### Maps and distance from you
+Set `VITE_MAPBOX_TOKEN` (a public `pk.` token, ideally URL-restricted) in `frontend/.env` / Vercel. On a listing, **Show distance from my location** asks the browser for permission, then shows the straight-line distance and, via Mapbox Directions, the road distance, drive time and route on the map. Without a token the app falls back to OpenStreetMap and straight-line distance only.
 
 ### Payments
 
@@ -49,7 +61,7 @@ Create a free M0 cluster, a database user, and allow network access `0.0.0.0/0` 
 
 ### 3. Frontend on Vercel
 * Import the repo, set **Root Directory** to `frontend` (Vite is auto-detected; `vercel.json` adds the SPA rewrite).
-* Environment variable: `VITE_API_URL` = your Render URL (e.g. `https://lookout-api.onrender.com`, no `/api`).
+* Environment variables: `VITE_API_URL` = your Render URL (e.g. `https://lookout-api.onrender.com`, no `/api`) and `VITE_MAPBOX_TOKEN`.
 * After the first deploy, put the final Vercel URL into the Render `CLIENT_URL` variable (comma-separate if you also want preview URLs).
 
 ## API overview

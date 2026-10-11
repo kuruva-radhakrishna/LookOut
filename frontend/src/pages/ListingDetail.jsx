@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import BookingCard from '../components/BookingCard'
 import Reviews from '../components/Reviews'
-import MapView from '../components/MapView'
+import LocationSection from '../components/LocationSection'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Spinner from '../components/Spinner'
 
@@ -91,6 +91,14 @@ export default function ListingDetail() {
       </div>
 
       <img className="detail-img" src={listing.img?.url} alt={listing.title} />
+      {listing.img?.credit && (
+        <p className="photo-credit">
+          Photo: {listing.img.credit} · {listing.img.license} ·{' '}
+          <a href={listing.img.source} target="_blank" rel="noreferrer">
+            Wikimedia Commons
+          </a>
+        </p>
+      )}
 
       <div className="detail-cols">
         <div>
@@ -109,7 +117,7 @@ export default function ListingDetail() {
           <section className="section">
             <h2>Where you'll be</h2>
             <p className="muted">The exact address is shared after booking.</p>
-            <MapView coordinates={listing.geometry?.coordinates} label={listing.place} />
+            <LocationSection coordinates={listing.geometry?.coordinates} label={listing.place} />
           </section>
           <hr />
           <Reviews listingId={id} isOwner={isOwner} onChanged={load} />

@@ -6,7 +6,7 @@ const listingSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true, maxlength: 80 },
     description: { type: String, default: "" },
-    img: { url: String, filename: String },
+    img: { url: String, filename: String, credit: String, license: String, source: String }, // credit/license/source: photo attribution
     cost: { type: Number, required: true, min: 1 }, // rupees per night
     place: { type: String, required: true },
     country: { type: String, required: true },
