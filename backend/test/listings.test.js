@@ -140,6 +140,25 @@ test("date filter hides listings with a booked or held night in the range, but n
   await Booking.deleteMany({});
 });
 
+test("CORS: the configured site is allowed, any other origin simply gets no CORS headers (no 500)", async () => {
+  const allowed = process.env.CLIENT_URL || "http://localhost:5173";
+  const ok = await request(app).get("/api/listings?limit=1").set("Origin", allowed);
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers["access-control-allow-origin"], allowed);
+
+  const stranger = await request(app).get("/api/listings?limit=1").set("Origin", "https://evil.example.com");
+  assert.equal(stranger.status, 200);
+  assert.equal(stranger.headers["access-control-allow-origin"], undefined);
+
+  const preflight = await request(app)
+    .options("/api/bookings")
+    .set("Origin", "https://evil.example.com")
+    .set("Access-Control-Request-Method", "POST")
+    .set("Access-Control-Request-Headers", "authorization,content-type");
+  assert.ok(preflight.status < 500, `preflight from a stranger must not be a server error (got ${preflight.status})`);
+  assert.equal(preflight.headers["access-control-allow-origin"], undefined);
+});
+
 test("place suggestions and facets", async () => {
   const all = await request(app).get("/api/listings/places");
   assert.equal(all.status, 200);

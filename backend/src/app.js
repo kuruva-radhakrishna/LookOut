@@ -16,7 +16,7 @@ app.use(
     origin(origin, cb) {
       // allow same-origin/tools (no Origin header) and the configured frontends
       if (!origin || env.clientUrls.includes(origin)) return cb(null, true);
-      cb(new Error(`Origin ${origin} not allowed by CORS`));
+      cb(null, false); // not an error: just send no CORS headers, so the browser refuses it (an Error here would be a 500 and log noise)
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })

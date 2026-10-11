@@ -1,4 +1,5 @@
-# Render Blueprint: New + -> Blueprint -> pick this repo. Fill in the `sync: false` values in the dashboard.
+# Render Blueprint: Dashboard -> New + -> Blueprint -> pick this repo. Render asks for the two values marked sync: false.
+# Optional settings (Razorpay, Cloudinary, ...) are listed in the README and can be added later under Environment.
 services:
   - type: web
     name: lookout-api
@@ -14,20 +15,8 @@ services:
       - key: NODE_VERSION
         value: 20.18.0
       - key: JWT_SECRET
-        generateValue: true
+        generateValue: true # random, kept secret by Render
       - key: MONGO_URI
-        sync: false
+        sync: false # your Atlas connection string, with the database name, e.g. .../lookout?retryWrites=true&w=majority
       - key: CLIENT_URL
-        sync: false # e.g. https://lookout.vercel.app
-      - key: RAZORPAY_KEY_ID
-        sync: false
-      - key: RAZORPAY_KEY_SECRET
-        sync: false
-      - key: RAZORPAY_WEBHOOK_SECRET
-        sync: false
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
+        sync: false # your Vercel URL, e.g. https://lookout.vercel.app (no trailing slash; comma-separate several)

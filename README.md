@@ -54,19 +54,43 @@ Set `VITE_MAPBOX_TOKEN` (a public `pk.` token, ideally URL-restricted) in `front
 
 ## Deploy
 
+Order matters because each side needs the other's URL: **database, then API, then website, then tell the API about the website.**
+
 ### 1. Database: MongoDB Atlas
-Create a free M0 cluster, a database user, and allow network access `0.0.0.0/0` (Render's IPs are not fixed). Copy the connection string.
+A free M0 cluster, a database user, and **Network Access -> Allow access from anywhere (0.0.0.0/0)** (Render's IPs aren't fixed). Use a connection string that names the database: `mongodb+srv://<user>:<password>@<cluster>/lookout?retryWrites=true&w=majority`. Load the sample data once from your computer with `MONGO_URI` in `backend/.env`: `npm run seed` (about 500 stays, 120 guests, ~1,800 reviews).
 
-### 2. Backend on Render
-* New + -> **Blueprint** -> select this repo (uses `render.yaml`), or create a Web Service manually with root directory `backend`, build `npm ci`, start `npm start`, health check `/api/health`.
-* Environment variables: `MONGO_URI`, `CLIENT_URL` (your Vercel URL, e.g. `https://lookout.vercel.app`, no trailing slash), optional Razorpay and Cloudinary keys. `JWT_SECRET` is generated for you.
-* Seed once from the Render shell: `npm run seed`.
-* Note: the free plan sleeps after inactivity; the first request can take ~50 s (the UI tells the user while it wakes).
+### 2. API on Render
+1. Render dashboard -> **New + -> Blueprint** -> connect the GitHub repo -> branch `main`. It reads `render.yaml` and asks for two values:
+   * `MONGO_URI`: the Atlas string above.
+   * `CLIENT_URL`: the Vercel URL you'll get in step 3. If you don't have it yet, type a placeholder (`https://placeholder.vercel.app`) and fix it in step 4.
+2. Wait for the deploy to go live, then copy the service URL (`https://lookout-api-xxxx.onrender.com`). Open `<url>/api/health`: you should see `{"ok":true,...}`.
 
-### 3. Frontend on Vercel
-* Import the repo, set **Root Directory** to `frontend` (Vite is auto-detected; `vercel.json` adds the SPA rewrite).
-* Environment variables: `VITE_API_URL` = your Render URL (e.g. `https://lookout-api.onrender.com`, no `/api`) and `VITE_MAPBOX_TOKEN`.
-* After the first deploy, put the final Vercel URL into the Render `CLIENT_URL` variable (comma-separate if you also want preview URLs).
+Optional variables (Render -> your service -> Environment), none are required:
+
+| Variable | What it does |
+| --- | --- |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | real (test-mode) Razorpay checkout; leave unset to keep the built-in demo gateway |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | store uploaded photos on Cloudinary; leave unset and uploads are stored in MongoDB |
+| `BOOKING_HOLD_MINUTES` | how long dates are held while paying (default 10) |
+| `PUBLIC_API_URL` | only if uploaded-image links come back with the wrong host |
+
+The free plan sleeps after ~15 minutes idle; the first request then takes up to a minute (the site says so while it wakes).
+
+### 3. Website on Vercel
+1. Vercel -> **Add New -> Project** -> import the repo. Set **Root Directory** to `frontend` (Vite is detected; `vercel.json` adds the rule that makes deep links work).
+2. Environment variables (these are read at *build* time, so changing them later needs a redeploy):
+   * `VITE_API_URL` = the Render URL from step 2 (`https://lookout-api-xxxx.onrender.com`, **no** trailing slash, **no** `/api`).
+   * `VITE_MAPBOX_TOKEN` = your public `pk.` Mapbox token (optional; without it the map falls back to OpenStreetMap). In Mapbox, restrict that token to your Vercel URL.
+3. Deploy and copy the site URL (`https://lookout-xxxx.vercel.app`).
+
+### 4. Tell the API about the website
+Render -> your service -> Environment -> set `CLIENT_URL` to the exact Vercel URL (no trailing slash; add custom domains or preview URLs comma-separated). Save, and Render redeploys. Without this, the site loads but every API call is blocked by the browser.
+
+### 5. Check it
+```bash
+node backend/scripts/verify-deploy.js https://lookout-api-xxxx.onrender.com https://lookout-xxxx.vercel.app
+```
+It checks the API and database, CORS (your site allowed, strangers not), deep links, and that the site is built against this API, and tells you which setting to fix if something is off.
 
 ## API overview
 
