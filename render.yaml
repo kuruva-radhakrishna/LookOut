@@ -1,4 +1,4 @@
-# Render Blueprint: Dashboard -> New + -> Blueprint -> pick this repo. Render asks for the two values marked sync: false.
+# Render Blueprint: Dashboard -> New + -> Blueprint -> pick this repo. Render asks for the value marked sync: false (MONGO_URI).
 # Optional settings (Razorpay, Cloudinary, ...) are listed in the README and can be added later under Environment.
 services:
   - type: web
@@ -19,4 +19,4 @@ services:
       - key: MONGO_URI
         sync: false # your Atlas connection string, with the database name, e.g. .../lookout?retryWrites=true&w=majority
       - key: CLIENT_URL
-        sync: false # your Vercel URL, e.g. https://lookout.vercel.app (no trailing slash; comma-separate several)
+        value: https://look-out-theta.vercel.app # the website's address (no trailing slash; comma-separate several, e.g. a custom domain)
