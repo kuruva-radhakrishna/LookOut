@@ -7,7 +7,7 @@ import { useToast } from '../context/ToastContext'
 import { api } from '../lib/api'
 import { diffDays, fmtDate, inr, inrFromPaise, priceStay } from '../lib/format'
 
-export default function BookingCard({ listing, isOwner }) {
+export default function BookingCard({ listing, isOwner, mine, refreshKey }) {
   const { user } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
@@ -29,7 +29,7 @@ export default function BookingCard({ listing, isOwner }) {
   )
   useEffect(() => {
     loadAvailability()
-  }, [loadAvailability])
+  }, [loadAvailability, refreshKey])
 
   const nights = range.start && range.end ? diffDays(range.start, range.end) : 0
   const price = useMemo(() => (nights ? priceStay(listing.cost, nights) : null), [listing.cost, nights])
@@ -87,6 +87,7 @@ export default function BookingCard({ listing, isOwner }) {
         <div className="cal-pop">
           <DateRangePicker
             booked={booked}
+            mine={mine}
             start={range.start}
             end={range.end}
             onChange={(r) => {

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import Navbar from './components/Navbar'
@@ -45,7 +45,8 @@ export default function App() {
               <Route path="/listings/:id" element={<ListingDetail />} />
               <Route path="/listings/:id/edit" element={guard(<ListingForm />)} />
               <Route path="/checkout/:id" element={guard(<Checkout />)} />
-              <Route path="/trips" element={guard(<Trips />)} />
+              <Route path="/bookings" element={guard(<Trips />)} />
+              <Route path="/trips" element={<Navigate to="/bookings" replace />} />
               <Route path="/login" element={<Auth mode="login" />} />
               <Route path="/signup" element={<Auth mode="signup" />} />
               <Route path="*" element={<NotFound />} />

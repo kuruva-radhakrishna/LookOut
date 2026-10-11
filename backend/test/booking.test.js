@@ -193,3 +193,23 @@ test("input validation and ownership rules", async () => {
   const mine = await book(guest.auth, listing, 8, 10);
   assert.equal((await request(app).post(`/api/bookings/${mine.body.booking._id}/cancel`).set(stranger.auth)).status, 404);
 });
+
+test("my bookings can be narrowed to one listing, and only ever shows the caller's own", async () => {
+  const { user: host } = await makeUser("host9");
+  const l1 = await makeListing(host);
+  const l2 = await makeListing(host);
+  const me = await makeUser("mine_a");
+  const other = await makeUser("mine_b");
+  const b1 = await book(me.auth, l1, 80, 82);
+  await book(me.auth, l2, 80, 82);
+  await book(other.auth, l1, 90, 92);
+
+  const all = await request(app).get("/api/bookings/mine").set(me.auth);
+  assert.equal(all.body.length, 2);
+  const only = await request(app).get(`/api/bookings/mine?listing=${l1._id}`).set(me.auth);
+  assert.equal(only.body.length, 1);
+  assert.equal(only.body[0]._id, b1.body.booking._id);
+  assert.equal(only.body[0].listing._id, String(l1._id), "listing is populated");
+  assert.equal((await request(app).get("/api/bookings/mine?listing=nope").set(me.auth)).status, 400);
+  assert.equal((await request(app).get(`/api/bookings/mine?listing=${l1._id}`)).status, 401);
+});

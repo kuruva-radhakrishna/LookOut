@@ -33,8 +33,14 @@ router.post("/", validate(createSchema), async (req, res) => {
   res.status(201).json({ booking, checkout, paymentMode: payments.mode });
 });
 
+// ?listing=<id> narrows to the guest's bookings at one listing (used by the "Your stay" card on a listing page)
 router.get("/mine", async (req, res) => {
-  res.json(await populate(Booking.find({ guest: req.user._id }).sort({ createdAt: -1 })).lean());
+  const filter = { guest: req.user._id };
+  if (req.query.listing) {
+    if (!/^[0-9a-f]{24}$/i.test(String(req.query.listing))) throw new AppError(400, "Invalid listing id");
+    filter.listing = req.query.listing;
+  }
+  res.json(await populate(Booking.find(filter).sort({ createdAt: -1 })).lean());
 });
 
 // Bookings other people made on listings I own.

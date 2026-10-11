@@ -5,6 +5,8 @@ import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import BookingCard from '../components/BookingCard'
+import YourStay from '../components/YourStay'
+import { myNights } from '../lib/bookings'
 import Reviews from '../components/Reviews'
 import LocationSection from '../components/LocationSection'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -19,6 +21,17 @@ export default function ListingDetail() {
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [stays, setStays] = useState([]) // the signed-in guest's own bookings at this listing
+  const [version, setVersion] = useState(0) // bumped whenever a booking changes so the calendar reloads
+
+  const loadStays = () => {
+    if (!user) return setStays([])
+    api.get(`/bookings/mine?listing=${id}`).then(setStays).catch(() => setStays([]))
+  }
+  useEffect(() => {
+    loadStays()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user?.id, version])
 
   const load = () =>
     api
@@ -90,6 +103,8 @@ export default function ListingDetail() {
         )}
       </div>
 
+      <YourStay bookings={stays} onChanged={() => setVersion((v) => v + 1)} />
+
       <img className="detail-img" src={listing.img?.url} alt={listing.title} />
       {listing.img?.credit && (
         <p className="photo-credit">
@@ -122,7 +137,7 @@ export default function ListingDetail() {
           <hr />
           <Reviews listingId={id} isOwner={isOwner} onChanged={load} />
         </div>
-        <BookingCard listing={listing} isOwner={isOwner} />
+        <BookingCard listing={listing} isOwner={isOwner} mine={myNights(stays)} refreshKey={version} />
       </div>
 
       <ConfirmDialog

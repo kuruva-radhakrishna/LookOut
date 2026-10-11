@@ -16,7 +16,7 @@ function monthCells(year, month) {
  * A night is the date you sleep; check-out is the morning after your last night, so a booked date
  * can still be chosen as check-out, but never as check-in, and a stay may not span a booked night.
  */
-export default function DateRangePicker({ booked, start, end, onChange, layout = 'stack' }) {
+export default function DateRangePicker({ booked, mine, start, end, onChange, layout = 'stack' }) {
   const today = todayISO()
   const [cursor, setCursor] = useState(() => {
     const d = fromISO(start || today)
@@ -89,6 +89,7 @@ export default function DateRangePicker({ booked, start, end, onChange, layout =
                   d === end && 'is-end',
                   inRange(d) && 'in-range',
                   booked.has(d) && 'is-booked',
+                  mine?.has(d) && 'is-mine',
                   d === today && 'is-today',
                 ]
                   .filter(Boolean)
@@ -101,7 +102,7 @@ export default function DateRangePicker({ booked, start, end, onChange, layout =
                     disabled={disabled}
                     onClick={() => pick(d)}
                     onMouseEnter={() => setHover(d)}
-                    aria-label={`${d}${booked.has(d) ? ' (unavailable)' : ''}`}
+                    aria-label={`${d}${mine?.has(d) ? ' (your stay)' : booked.has(d) ? ' (unavailable)' : ''}`}
                     aria-pressed={d === start || d === end}
                   >
                     {Number(d.slice(8))}
@@ -116,6 +117,11 @@ export default function DateRangePicker({ booked, start, end, onChange, layout =
         <span className="legend">
           <i className="dot dot-booked" /> Unavailable
         </span>
+        {mine?.size > 0 && (
+          <span className="legend">
+            <i className="dot dot-mine" /> Your stay
+          </span>
+        )}
         {(start || end) && (
           <button type="button" className="link-btn" onClick={() => onChange({ start: null, end: null })}>
             Clear dates

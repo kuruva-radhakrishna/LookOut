@@ -51,7 +51,7 @@ export default function Trips() {
 
   return (
     <div className="container narrow">
-      <h1>My trips</h1>
+      <h1>My bookings</h1>
       <div className="tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'trips'} className={tab === 'trips' ? 'active' : ''} onClick={() => setTab('trips')}>
           My bookings

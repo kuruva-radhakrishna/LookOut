@@ -42,6 +42,11 @@ export default function Navbar() {
         </div>
 
         <div className="nav-right" ref={wrap}>
+          {user && (
+            <Link to="/bookings" className="host-link">
+              My bookings
+            </Link>
+          )}
           <Link to="/listings/new" className="host-link">
             Host a stay
           </Link>
@@ -55,8 +60,8 @@ export default function Navbar() {
               {user ? (
                 <>
                   <p className="menu-who">Signed in as <strong>@{user.username}</strong></p>
-                  <button role="menuitem" onClick={go('/trips')}>
-                    <Luggage size={16} /> My trips
+                  <button role="menuitem" onClick={go('/bookings')}>
+                    <Luggage size={16} /> My bookings
                   </button>
                   <button role="menuitem" onClick={go('/listings/new')}>
                     <Plus size={16} /> Host a stay

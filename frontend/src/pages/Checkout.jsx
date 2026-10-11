@@ -116,7 +116,7 @@ export default function Checkout() {
     }
   }
 
-  if (error) return <div className="container empty"><p>{error}</p><Link className="btn btn-dark" to="/trips">My trips</Link></div>
+  if (error) return <div className="container empty"><p>{error}</p><Link className="btn btn-dark" to="/bookings">My bookings</Link></div>
   if (!booking || !health) return <Spinner />
 
   const l = booking.listing
@@ -154,8 +154,8 @@ export default function Checkout() {
           Paid <strong>{inrFromPaise(booking.pricing.total)}</strong>
         </p>
         <div className="row gap center-row">
-          <Link className="btn btn-primary" to="/trips">
-            View my trips
+          <Link className="btn btn-primary" to="/bookings">
+            View my bookings
           </Link>
           <Link className="btn btn-ghost" to="/">
             Keep exploring

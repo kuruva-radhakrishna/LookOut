@@ -488,3 +488,25 @@ a.card:hover .card-img img { transform: scale(1.05); }
 .phone-screen svg { color: var(--accent); }
 @keyframes buzz { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(-3deg); } 85% { transform: rotate(3deg); } 95% { transform: rotate(-2deg); } }
 @media (prefers-reduced-motion: reduce) { .phone, .gw-result svg { animation: none; } }
+
+/* ---------- "Your stay" on a listing page ---------- */
+.your-stay { margin: 16px 0 6px; padding: 18px 20px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 14px; box-shadow: var(--shadow); }
+.your-stay h2 { font-size: 1.1rem; margin-bottom: 10px; }
+.stay-list { display: grid; gap: 12px; }
+.stay { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 16px; border-radius: 12px; background: #faf8f5; border: 1px solid var(--line); }
+.stay-confirmed { background: #f2fbf5; border-color: #cfe9d8; }
+.stay-pending { background: #fffaf0; border-color: #f2dfae; }
+.stay-main { display: grid; gap: 6px; min-width: 0; }
+.stay-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .82rem; }
+.stay-dates { margin: 0; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stay-dates .muted { font-weight: 400; }
+.stay-meta { margin: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: .9rem; color: var(--ink-2); }
+.stay .hint { margin: 0; }
+.paid { display: inline-flex; align-items: center; gap: 5px; color: var(--ok); font-weight: 600; margin-left: 6px; }
+.hold-left { display: inline-flex; align-items: center; gap: 5px; color: var(--accent-dark); font-weight: 600; font-size: .8rem; }
+.stay-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.badge-done { background: #e8ecf5; color: #3b4863; }
+.cal-day.is-mine { background: var(--accent-soft) !important; color: var(--accent-dark) !important; font-weight: 800; text-decoration: none; box-shadow: inset 0 0 0 1.5px var(--accent); }
+.dot-mine { background: var(--accent); }
+.legend + .legend { margin-left: 12px; }
+.wrap { flex-wrap: wrap; }

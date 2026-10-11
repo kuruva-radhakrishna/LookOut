@@ -40,7 +40,7 @@ export default function Auth({ mode }) {
       <form className="panel auth-card" onSubmit={submit}>
         <Compass size={32} className="accent" />
         <h1>{isSignup ? 'Create your account' : 'Welcome back'}</h1>
-        <p className="muted">{isSignup ? 'Book stays and host your own.' : 'Log in to manage your trips.'}</p>
+        <p className="muted">{isSignup ? 'Book stays and host your own.' : 'Log in to manage your bookings.'}</p>
 
         <label>
           {isSignup ? 'Username' : 'Username or email'}
