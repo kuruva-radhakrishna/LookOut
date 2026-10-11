@@ -10,3 +10,4 @@ dist/
 .images.log
 .web.*
 .api.*
+.prev.*
