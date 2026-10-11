@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { CalendarDays, CheckCircle2, Clock, PenLine, Users } from 'lucide-react'
 import { api } from '../lib/api'
 import { fmtDate, inrFromPaise } from '../lib/format'
-import { bookingRef, describeBooking, isRefundable, paidWith } from '../lib/bookings'
+import { bookingRef, canCancelBooking, cancelBlockedNote, describeBooking, isRefundable, paidWith } from '../lib/bookings'
 import { useToast } from '../context/ToastContext'
 import ConfirmDialog from './ConfirmDialog'
 
@@ -73,7 +73,8 @@ export default function YourStay({ bookings, onChanged }) {
                   </span>
                 )}
               </p>
-              {d.tab === 'upcoming' && b.status === 'confirmed' && (
+              {cancelBlockedNote(b) && <p className="hint">{cancelBlockedNote(b)}</p>}
+              {canCancelBooking(b) && b.status === 'confirmed' && (
                 <p className="hint">{isRefundable(b) ? 'Free cancellation until 48 hours before check-in.' : 'No longer refundable (check-in is within 48 hours).'}</p>
               )}
             </div>
@@ -91,7 +92,7 @@ export default function YourStay({ bookings, onChanged }) {
               <Link className="btn btn-ghost btn-sm" to="/bookings">
                 All bookings
               </Link>
-              {d.tab === 'upcoming' && (
+              {canCancelBooking(b) && (
                 <button className="btn btn-ghost btn-sm danger-text" onClick={() => setCancelling(b)}>
                   Cancel
                 </button>

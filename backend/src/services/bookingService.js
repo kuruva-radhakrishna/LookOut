@@ -163,8 +163,10 @@ async function cancelBooking(bookingId, guestId) {
   const booking = await Booking.findOne({ _id: bookingId, guest: guestId });
   if (!booking) throw new AppError(404, "Booking not found");
   if (booking.status === "cancelled") return booking;
-  if (booking.checkIn <= today() && booking.status === "confirmed") {
-    throw new AppError(400, "Stays that have started can't be cancelled online");
+  // Cancelling is possible up to and including the check-in day (inside 48 hours it just isn't refunded).
+  // Once the stay is under way (check-in was before today) it can't be cancelled online.
+  if (booking.checkIn < today() && booking.status === "confirmed") {
+    throw new AppError(400, "This stay is already under way and can't be cancelled online. Please contact the host.");
   }
   const wasPaid = booking.status === "confirmed";
 

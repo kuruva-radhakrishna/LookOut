@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { CalendarDays, Luggage } from 'lucide-react'
 import { api } from '../lib/api'
 import { fmtDate, inrFromPaise } from '../lib/format'
+import { canCancelBooking, cancelBlockedNote } from '../lib/bookings'
 import { useToast } from '../context/ToastContext'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Spinner from '../components/Spinner'
@@ -75,7 +76,7 @@ export default function Trips() {
       <div className="trip-list">
         {list.map((b) => {
           const st = statusOf(b)
-          const upcoming = new Date(b.checkIn) > Date.now()
+          const blocked = cancelBlockedNote(b)
           return (
             <article key={b._id} className="panel trip">
               <img src={b.listing?.img?.url} alt="" />
@@ -101,13 +102,14 @@ export default function Trips() {
                         Complete payment
                       </Link>
                     )}
-                    {(st === 'pending' || (st === 'confirmed' && upcoming)) && (
+                    {canCancelBooking(b) && (
                       <button className="btn btn-ghost btn-sm" onClick={() => setCancelling(b)}>
                         Cancel
                       </button>
                     )}
                   </div>
                 )}
+                {tab === 'trips' && blocked && <p className="hint">{blocked}</p>}
               </div>
             </article>
           )

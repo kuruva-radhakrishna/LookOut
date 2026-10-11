@@ -213,3 +213,35 @@ test("my bookings can be narrowed to one listing, and only ever shows the caller
   assert.equal((await request(app).get("/api/bookings/mine?listing=nope").set(me.auth)).status, 400);
   assert.equal((await request(app).get(`/api/bookings/mine?listing=${l1._id}`)).status, 401);
 });
+
+test("cancelling is allowed on the check-in day (not refunded), but not once the stay is under way", async () => {
+  const { user: host } = await makeUser("host10");
+  const listing = await makeListing(host);
+  const guest = await makeUser("late_canceller");
+  const DAY = 86400000;
+  const midnight = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z");
+  const confirmed = (checkIn) =>
+    Booking.create({
+      listing: listing._id,
+      guest: guest.user._id,
+      checkIn,
+      checkOut: new Date(checkIn.getTime() + 2 * DAY),
+      nights: 2,
+      guests: 1,
+      pricing: { subtotal: 200000, tax: 36000, total: 236000 },
+      status: "confirmed",
+      payment: { provider: "demo", paymentId: "demo_pay_seed" },
+    });
+
+  const today = await confirmed(midnight);
+  const r1 = await request(app).post(`/api/bookings/${today._id}/cancel`).set(guest.auth);
+  assert.equal(r1.status, 200, "check-in today can still be cancelled");
+  assert.equal(r1.body.status, "cancelled");
+  assert.ok(!r1.body.payment.refundId, "within 48 hours: no refund");
+
+  const underway = await confirmed(new Date(midnight.getTime() - DAY)); // checked in yesterday
+  const r2 = await request(app).post(`/api/bookings/${underway._id}/cancel`).set(guest.auth);
+  assert.equal(r2.status, 400);
+  assert.match(r2.body.error, /under way/);
+  assert.equal((await Booking.findById(underway._id)).status, "confirmed");
+});

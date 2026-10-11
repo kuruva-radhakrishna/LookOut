@@ -12,9 +12,22 @@ export function describeBooking(b, now = Date.now()) {
   if (b.status === 'expired' || (b.status === 'pending' && new Date(b.holdExpiresAt) <= now)) return { tab: 'cancelled', label: 'Expired', tone: 'expired' }
   if (b.status === 'pending') return { tab: 'upcoming', label: 'Awaiting payment', tone: 'pending' }
   if (day(b.checkOut) < today) return { tab: 'past', label: 'Completed', tone: 'done' }
-  if (day(b.checkIn) <= today) return { tab: 'upcoming', label: 'Staying now', tone: 'confirmed' }
+  if (day(b.checkIn) === today) return { tab: 'upcoming', label: 'Check-in today', tone: 'confirmed' }
+  if (day(b.checkIn) < today) return { tab: 'upcoming', label: 'Staying now', tone: 'confirmed' }
   return { tab: 'upcoming', label: 'Confirmed', tone: 'confirmed' }
 }
+
+/** Unpaid holds, and paid stays up to and including the check-in day. Mirrors the server rule in bookingService.cancelBooking. */
+export const canCancelBooking = (b) => {
+  if (describeBooking(b).tab !== 'upcoming') return false
+  return b.status === 'pending' || day(b.checkIn) >= todayISO()
+}
+
+/** Why a paid, upcoming-tab booking can't be cancelled (so the UI can say so instead of just hiding the button). */
+export const cancelBlockedNote = (b) =>
+  describeBooking(b).tab === 'upcoming' && b.status === 'confirmed' && day(b.checkIn) < todayISO()
+    ? "This stay is under way, so it can't be cancelled online. Contact the host if you need to change it."
+    : null
 
 export const isRefundable = (b) => b.status === 'confirmed' && new Date(b.checkIn).getTime() - Date.now() >= FULL_REFUND_MS
 
