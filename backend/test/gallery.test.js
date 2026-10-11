@@ -64,6 +64,18 @@ test("uploads: images are stored and served publicly with cross-origin headers; 
   assert.equal(await Media.countDocuments({ owner: g.user._id }), 2);
 });
 
+test("behind a TLS-terminating proxy (Render) uploaded image links are https, so browsers on an https site will load them", async () => {
+  const g = await guest("proxied");
+  const up = await request(app)
+    .post("/api/media")
+    .set(g.auth)
+    .set("X-Forwarded-Proto", "https")
+    .set("X-Forwarded-Host", "lookout-api.onrender.com")
+    .attach("images", PNG, { filename: "a.png", contentType: "image/png" });
+  assert.equal(up.status, 201);
+  assert.match(up.body[0].url, /^https:\/\/[^/]+\/api\/media\/[0-9a-f]{24}$/);
+});
+
 test("a single photo is automatically the primary one", async () => {
   const g = await guest("solo");
   const r = await create(g, { images: [pic(1)] });
