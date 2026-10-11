@@ -1,6 +1,8 @@
 // The URL is the single source of truth for search state, so results are shareable and back/forward work.
-export const PAGE_SIZES = [15, 30, 45] // multiples of 3 and 5: whole rows in a five-column grid (and a three-column one)
-export const DEFAULT_LIMIT = 15
+// A page is whole rows of the grid: limit = columns x rows. Rows are multiples of 3, so the limit is always a multiple of 3
+// (the API's rule) whatever the column count, and a row is never left half empty. Max 9 rows x 5 columns = 45.
+export const ROWS = [3, 6, 9]
+export const DEFAULT_ROWS = 3
 
 export const SORTS = [
   { id: 'recommended', label: 'Recommended' },
@@ -16,7 +18,7 @@ const int = (v) => {
 }
 
 export function readFilters(sp) {
-  const limit = int(sp.get('limit'))
+  const rows = int(sp.get('rows'))
   return {
     q: sp.get('q') || '',
     category: sp.get('category') || '',
@@ -28,7 +30,7 @@ export function readFilters(sp) {
     checkOut: sp.get('checkOut') || '',
     guests: int(sp.get('guests')),
     page: int(sp.get('page')) || 1,
-    limit: PAGE_SIZES.includes(limit) ? limit : DEFAULT_LIMIT,
+    rows: ROWS.includes(rows) ? rows : DEFAULT_ROWS,
   }
 }
 
@@ -47,14 +49,14 @@ export function writeFilters(f) {
   }
   if (f.guests) p.set('guests', f.guests)
   if (f.page > 1) p.set('page', f.page)
-  if (f.limit && f.limit !== DEFAULT_LIMIT) p.set('limit', f.limit)
+  if (f.rows && f.rows !== DEFAULT_ROWS) p.set('rows', f.rows)
   return p
 }
 
-/** Filters -> API query string using limit/offset. `page` is only a UI concept: offset = (page - 1) * limit. */
+/** Filters -> API query string using limit/offset. `page` is only a UI concept: offset = (page - 1) * limit. The caller supplies `limit` (columns x rows). */
 export function toApiQuery(f, overrides = {}) {
   const g = { ...f, ...overrides }
-  const p = writeFilters({ ...g, page: 1, limit: DEFAULT_LIMIT })
+  const p = writeFilters({ ...g, page: 1 })
   p.set('limit', g.limit)
   p.set('offset', (g.page - 1) * g.limit)
   p.set('sort', g.sort)

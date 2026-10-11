@@ -3,11 +3,12 @@ import { useSearchParams } from 'react-router-dom'
 import { SearchX, SlidersHorizontal, X } from 'lucide-react'
 import { api } from '../lib/api'
 import { fmtDate, inr } from '../lib/format'
-import { panelFilterCount, readFilters, SORTS, toApiQuery, writeFilters } from '../lib/query'
+import { panelFilterCount, readFilters, ROWS, SORTS, toApiQuery, writeFilters } from '../lib/query'
 import ListingCard, { CardSkeleton } from '../components/ListingCard'
 import CategoryBar from '../components/CategoryBar'
 import FiltersModal from '../components/FiltersModal'
 import Pagination from '../components/Pagination'
+import { pageSize, useGridColumns } from '../lib/grid'
 
 const readTaxPref = () => {
   try {
@@ -30,6 +31,9 @@ export default function Home() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const reqId = useRef(0)
   const results = useRef(null)
+  // A page is whole rows: limit = columns (measured from the real grid) x rows (3, 6 or 9 base rows, more on narrow screens).
+  const columns = useGridColumns(results)
+  const limit = columns ? pageSize(columns, f.rows) : null
 
   const go = (patch, { keepPage = false, replace = false } = {}) =>
     setParams(writeFilters({ ...f, ...patch, page: keepPage ? (patch.page ?? f.page) : 1 }), { replace })
@@ -38,14 +42,29 @@ export default function Home() {
     api.get('/listings/facets').then((r) => setBounds(r.price)).catch(() => {})
   }, [])
 
+  // The window was resized (or rotated) so the grid has a different column count: keep the first visible stay on screen
+  // by recomputing the page number for the new page size, instead of leaving the guest on an unrelated page.
+  const lastLimit = useRef(null)
   useEffect(() => {
+    if (!limit) return
+    const prev = lastLimit.current
+    lastLimit.current = limit
+    if (prev && prev !== limit && f.page > 1) {
+      const page = Math.floor(((f.page - 1) * prev) / limit) + 1
+      setParams(writeFilters({ ...f, page }), { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit])
+
+  useEffect(() => {
+    if (!limit) return // not measured yet
     const id = ++reqId.current
     setData(null)
     setError('')
     // Free hosting sleeps when idle; explain a slow first load instead of showing nothing.
     const t = setTimeout(() => setSlow(true), 4000)
     api
-      .get(`/listings?${toApiQuery(f)}`)
+      .get(`/listings?${toApiQuery({ ...f, limit })}`)
       .then((r) => {
         if (id !== reqId.current) return
         setData(r)
@@ -59,7 +78,7 @@ export default function Home() {
       })
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
+  }, [key, limit])
 
   const setTax = (on) => {
     setWithTax(on)
@@ -84,7 +103,7 @@ export default function Home() {
     f.sort !== 'recommended' && { label: SORTS.find((s) => s.id === f.sort)?.label, clear: { sort: 'recommended' } },
   ].filter(Boolean)
   const filtered = chips.length > 0 || f.category
-  const clearAll = () => setParams(writeFilters({ limit: f.limit }))
+  const clearAll = () => setParams(writeFilters({ rows: f.rows }))
   const loading = !data && !error
 
   return (
@@ -139,7 +158,7 @@ export default function Home() {
           <>
             {slow && <p className="notice">Waking up the server. The first load can take up to a minute on free hosting…</p>}
             <div className="grid">
-              {Array.from({ length: f.limit }, (_, i) => (
+              {Array.from({ length: limit || 0 }, (_, i) => (
                 <CardSkeleton key={i} />
               ))}
             </div>
@@ -168,14 +187,15 @@ export default function Home() {
               page={data.page}
               pages={data.pages}
               total={data.total}
-              limit={data.limit}
+              rows={f.rows}
+              sizes={ROWS.map((r) => ({ rows: r, count: pageSize(columns, r) }))}
               offset={data.offset}
               itemCount={data.items.length}
               onPage={(page) => {
                 go({ page }, { keepPage: true })
                 toTop()
               }}
-              onLimit={(limit) => go({ limit })}
+              onRows={(rows) => go({ rows })}
             />
           </>
         )}

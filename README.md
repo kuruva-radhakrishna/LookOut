@@ -73,7 +73,7 @@ Create a free M0 cluster, a database user, and allow network access `0.0.0.0/0` 
 | Method | Path | Notes |
 | --- | --- | --- |
 | POST | `/api/auth/signup`, `/login` | returns `{token, user}` (send as `Authorization: Bearer`) |
-| GET | `/api/listings?q&category&minPrice&maxPrice&minRating&guests&checkIn&checkOut&sort&limit&offset` | search with `limit`/`offset` paging. `limit` is snapped to a multiple of 3 (3 to 48, default 12). `sort`: recommended, rating, price_asc, price_desc, newest. Dates hide stays with a booked or held night in range. Returns `items,total,limit,offset,page,pages,hasMore` |
+| GET | `/api/listings?q&category&minPrice&maxPrice&minRating&guests&checkIn&checkOut&sort&limit&offset` | search with `limit`/`offset` paging. `limit` is snapped to a multiple of 3 (3 to 48, default 15). The web app sends `limit = columns x rows` (columns measured from the live grid, rows 3/6/9, more on narrow screens), so every row on a page is full at any screen size. `sort`: recommended, rating, price_asc, price_desc, newest. Dates hide stays with a booked or held night in range. Returns `items,total,limit,offset,page,pages,hasMore` |
 | GET | `/api/listings/places?q` | destination suggestions with stay counts |
 | GET | `/api/listings/facets` | price bounds and category counts for the filter UI |
 | GET | `/api/listings/:id/similar?limit` | "More stays like this": ranked by same place, same region, same category, similar price and rating (3 to 24, default 12) |

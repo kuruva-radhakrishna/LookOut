@@ -685,3 +685,6 @@ dialog.lightbox::backdrop { background: #0b0f1a; }
 @media (max-width: 600px) { .slide { flex-basis: 62%; } }
 .car-count { align-self: center; font-size: .85rem; font-weight: 600; color: var(--ink-2); margin-right: 4px; }
 @media (max-width: 600px) { .car-count { display: none; } }
+
+/* one-column override removed on purpose: the grid must be a pure auto-fill so the page size (columns x rows) always matches what is drawn */
+@media (max-width: 520px) { .grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); } }

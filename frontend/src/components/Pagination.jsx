@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { PAGE_SIZES } from '../lib/query'
 
 // 1 … 4 5 [6] 7 8 … 42
 function pageList(page, pages) {
@@ -19,7 +18,7 @@ function pageList(page, pages) {
   return out
 }
 
-export default function Pagination({ page, pages, total, limit, offset, itemCount, onPage, onLimit }) {
+export default function Pagination({ page, pages, total, rows, sizes, offset, itemCount, onPage, onRows }) {
   if (!total) return null
   const from = offset + 1
   const to = offset + itemCount
@@ -59,10 +58,10 @@ export default function Pagination({ page, pages, total, limit, offset, itemCoun
 
       <label className="pager-size">
         <span>Per page</span>
-        <select value={limit} onChange={(e) => onLimit(Number(e.target.value))} aria-label="Stays per page">
-          {PAGE_SIZES.map((n) => (
-            <option key={n} value={n}>
-              {n}
+        <select value={rows} onChange={(e) => onRows(Number(e.target.value))} aria-label="Stays per page">
+          {sizes.map((s) => (
+            <option key={s.rows} value={s.rows}>
+              {s.count}
             </option>
           ))}
         </select>
