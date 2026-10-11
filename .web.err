@@ -1,1 +1,0 @@
-12:21:05 pm [vite] (client) [console.warn] The map container element should be empty, otherwise the map's interactivity will be negatively impacted. If you want to display a message when WebGL is not supported, use the Mapbox GL Supported plugin instead.

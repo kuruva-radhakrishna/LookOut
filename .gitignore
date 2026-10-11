@@ -8,3 +8,5 @@ dist/
 .api.*
 .web.log
 .images.log
+.web.*
+.api.*
