@@ -152,3 +152,28 @@ test("place suggestions and facets", async () => {
   assert.deepEqual(f.body.price, { min: 1000, max: 40000 });
   assert.equal(f.body.categories.length, 4);
 });
+
+test("similar listings: excludes itself, ranks same place and category first, respects the limit", async () => {
+  const goaBeach = await Listing.findOne({ title: "Stay 1 beaches" }); // Goa, beaches, ₹1,000
+  const r = await request(app).get(`/api/listings/${goaBeach._id}/similar`);
+  assert.equal(r.status, 200);
+  assert.ok(r.body.length > 0 && r.body.length <= 12);
+  assert.ok(!r.body.some((l) => String(l._id) === String(goaBeach._id)), "never includes the listing itself");
+  assert.equal(new Set(r.body.map((l) => l._id)).size, r.body.length, "no duplicates");
+
+  // seed data: Goa listings are every 4th (same place and category as this one), so they must come first
+  const firstFive = r.body.slice(0, 5);
+  assert.ok(firstFive.every((l) => l.place === goaBeach.place && l.category === goaBeach.category), "same place + same category first");
+
+  const three = await request(app).get(`/api/listings/${goaBeach._id}/similar?limit=3`);
+  assert.equal(three.body.length, 3);
+  assert.equal((await request(app).get(`/api/listings/${goaBeach._id}/similar?limit=999`)).body.length <= 24, true);
+
+  // a place with nothing else nearby still gets same-category suggestions
+  const lonely = await Listing.create({ title: "Lone island hut", cost: 2000, place: "Nowhere, Atlantis", country: "India", category: "beaches", owner: host._id, maxGuests: 2 });
+  const l = await request(app).get(`/api/listings/${lonely._id}/similar`);
+  assert.ok(l.body.length > 0 && l.body.every((x) => x.category === "beaches"));
+
+  assert.equal((await request(app).get("/api/listings/000000000000000000000000/similar")).status, 404);
+  assert.equal((await request(app).get("/api/listings/not-an-id/similar")).status, 404);
+});

@@ -76,6 +76,10 @@ router.get("/facets", async (_req, res) => {
   res.json(await listingSearch.facets());
 });
 
+router.get("/:id/similar", async (req, res) => {
+  res.json(await listingSearch.similar(req.params.id, req.query.limit));
+});
+
 router.get("/:id", async (req, res) => {
   const listing = await Listing.findById(req.params.id).populate("owner", "username").lean();
   if (!listing) throw new AppError(404, "Listing not found");

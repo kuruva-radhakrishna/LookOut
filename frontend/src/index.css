@@ -510,3 +510,23 @@ a.card:hover .card-img img { transform: scale(1.05); }
 .dot-mine { background: var(--accent); }
 .legend + .legend { margin-left: 12px; }
 .wrap { flex-wrap: wrap; }
+
+/* ---------- "More stays like this" carousel ---------- */
+.similar { margin: 8px 0 24px; padding-top: 32px; border-top: 1px solid var(--line); }
+.similar-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.similar-head h2 { margin-bottom: 2px; }
+.similar-head p { margin: 0; font-size: .9rem; }
+.similar-head a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
+.car-btns { display: flex; gap: 10px; flex-shrink: 0; }
+.car-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #cfc9bf; background: #fff; display: grid; place-items: center; cursor: pointer; color: var(--ink); transition: box-shadow .15s, transform .1s, opacity .15s; }
+.car-btn:hover:not(:disabled) { box-shadow: 0 2px 10px rgba(0,0,0,.18); transform: scale(1.06); }
+.car-btn:disabled { opacity: .3; cursor: default; }
+.carousel { display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 4px 2px 10px; margin: 0 -2px; outline-offset: 4px; }
+.carousel::-webkit-scrollbar { display: none; }
+.slide { flex: 0 0 calc((100% - 2 * 22px) / 3); scroll-snap-align: start; min-width: 0; }
+@media (max-width: 1000px) { .slide { flex-basis: calc((100% - 22px) / 2); } }
+@media (max-width: 600px) { .slide { flex-basis: 78%; } .car-btns { display: none; } .similar-head { align-items: flex-start; } }
+@media (prefers-reduced-motion: reduce) { .carousel { scroll-behavior: auto; } }
+
+/* on narrow screens the booking card sits at the top of the page instead of following the scroll (placed late so it beats the base sticky rule) */
+@media (max-width: 900px) { .detail .book-card { position: static; } }

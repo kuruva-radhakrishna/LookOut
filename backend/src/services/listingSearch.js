@@ -105,4 +105,40 @@ async function facets() {
   };
 }
 
-module.exports = { search, places, facets, parsePaging };
+// "Goa", "Kerala": the part of "Calangute, Goa" after the last comma (or the whole string for places like "Diu")
+const regionOf = (place) => String(place).split(",").pop().trim();
+
+/**
+ * "More like this": other listings ranked by how close they are to this one.
+ * Same place beats same region beats same category; a similar price and good ratings break ties.
+ */
+async function similar(listingId, limit = 12) {
+  const base = await Listing.findById(listingId).lean();
+  if (!base) throw new AppError(404, "Listing not found");
+  const region = regionOf(base.place);
+  const pool = await Listing.find({
+    _id: { $ne: base._id },
+    $or: [{ place: base.place }, { place: new RegExp("(^|,\\s*)" + escapeRegex(region) + "$", "i") }, { category: base.category }],
+  })
+    .limit(300)
+    .lean();
+
+  const score = (l) => {
+    let s = 0;
+    if (l.place === base.place) s += 4;
+    else if (regionOf(l.place).toLowerCase() === region.toLowerCase()) s += 2.5;
+    if (l.category === base.category) s += 2;
+    const ratio = l.cost / base.cost;
+    if (ratio >= 0.6 && ratio <= 1.6) s += 1.5 - Math.abs(1 - ratio); // closer price, higher score
+    s += (l.ratingAvg || 0) / 10; // a small nudge for well-reviewed stays
+    return s;
+  };
+  const n = Math.min(24, Math.max(3, parseInt(limit, 10) || 12));
+  return pool
+    .map((l) => ({ l, s: score(l) }))
+    .sort((a, b) => b.s - a.s || String(a.l._id).localeCompare(String(b.l._id)))
+    .slice(0, n)
+    .map(({ l }) => l);
+}
+
+module.exports = { search, places, facets, similar, parsePaging };

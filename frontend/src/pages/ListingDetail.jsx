@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import BookingCard from '../components/BookingCard'
 import YourStay from '../components/YourStay'
+import SimilarListings from '../components/SimilarListings'
 import { myNights } from '../lib/bookings'
 import Reviews from '../components/Reviews'
 import LocationSection from '../components/LocationSection'
@@ -139,6 +140,8 @@ export default function ListingDetail() {
         </div>
         <BookingCard listing={listing} isOwner={isOwner} mine={myNights(stays)} refreshKey={version} />
       </div>
+
+      <SimilarListings key={listing._id} listing={listing} />
 
       <ConfirmDialog
         open={confirmDelete}
