@@ -688,3 +688,5 @@ dialog.lightbox::backdrop { background: #0b0f1a; }
 
 /* one-column override removed on purpose: the grid must be a pure auto-fill so the page size (columns x rows) always matches what is drawn */
 @media (max-width: 520px) { .grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); } }
+
+.dp-hint { margin: 0 0 12px; font-size: .88rem; color: var(--ink-2); }

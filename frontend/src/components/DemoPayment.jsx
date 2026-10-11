@@ -25,6 +25,15 @@ const TEST_CARDS = [
   { label: 'Insufficient funds', number: '4000 0000 0000 9995' },
 ]
 
+// Valid details for every method (the instant-success test card, an approving UPI id, ...), pre-filled so a demo
+// checkout is one click. Editing them is how you try the failure cases.
+const TEST = {
+  card: { number: '4111 1111 1111 1111', expiry: '12/30', cvv: '123', name: 'Test Guest' },
+  vpa: 'demo@okhdfcbank',
+  bank: 'HDFC Bank',
+  wallet: 'Paytm',
+}
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const digits = (s) => s.replace(/\D/g, '')
 
@@ -65,10 +74,10 @@ export default function DemoPayment({ booking, onPaid, reload }) {
   const id = booking._id
   const total = booking.pricing.total
   const [method, setMethod] = useState('upi')
-  const [card, setCard] = useState({ number: '', expiry: '', cvv: '', name: '' })
-  const [vpa, setVpa] = useState('')
-  const [bank, setBank] = useState('')
-  const [wallet, setWallet] = useState('')
+  const [card, setCard] = useState(TEST.card)
+  const [vpa, setVpa] = useState(TEST.vpa)
+  const [bank, setBank] = useState(TEST.bank)
+  const [wallet, setWallet] = useState(TEST.wallet)
   const [errors, setErrors] = useState({})
   const [notice, setNotice] = useState(null)
   const [showTest, setShowTest] = useState(false)
@@ -115,6 +124,14 @@ export default function DemoPayment({ booking, onPaid, reload }) {
       window.removeEventListener('pagehide', gone)
     }
   }, [live, gw?.attempt?._id, id])
+
+  const resetTest = () => {
+    setCard(TEST.card)
+    setVpa(TEST.vpa)
+    setBank(TEST.bank)
+    setWallet(TEST.wallet)
+    setErrors({})
+  }
 
   // ---------- validation + payload ----------
   function validate() {
@@ -229,6 +246,14 @@ export default function DemoPayment({ booking, onPaid, reload }) {
       </div>
 
       {notice && <p className={`notice ${notice.type === 'error' ? 'error' : ''}`}>{notice.text}</p>}
+
+      <p className="dp-hint">
+        Test details are pre-filled, so you can just press <strong>Pay</strong>. Edit them to try a failure, or{' '}
+        <button type="button" className="link-btn" onClick={resetTest}>
+          reset to test details
+        </button>
+        .
+      </p>
 
       <div className="dp-grid">
         <div className="dp-methods" role="radiogroup" aria-label="Payment method">
