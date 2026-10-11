@@ -1,5 +1,12 @@
 require("dotenv").config();
 
+// Some local resolvers (VPNs, routers, DNS proxies on 127.0.0.1) refuse the SRV lookups that
+// mongodb+srv:// URIs need. In development, append public resolvers as a fallback; the system ones still go first.
+if (process.env.NODE_ENV !== "production" && !process.env.NO_DNS_FALLBACK) {
+  const dns = require("dns");
+  dns.setServers([...new Set([...dns.getServers(), "8.8.8.8", "1.1.1.1"])]);
+}
+
 const num = (v, d) => (v === undefined || v === "" ? d : Number(v));
 
 const env = {

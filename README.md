@@ -32,7 +32,8 @@ With your own MongoDB (Atlas or local): copy `backend/.env.example` to `backend/
 
 ```bash
 cd backend
-npm run seed -- --reset   # 500 listings across ~75 places in India, owned by 8 demo hosts (password lookout-demo-1)
+npm run seed -- --reset   # 500 listings across ~75 places, 8 demo hosts, 120 demo guests and ~1,800 reviews (password lookout-demo-1)
+npm run seed:reviews      # (re)creates just the guests and reviews on existing listings
 npm run dev
 ```
 

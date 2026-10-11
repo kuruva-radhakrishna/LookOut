@@ -13,6 +13,7 @@ const Booking = require("../src/models/Booking");
 const BookedNight = require("../src/models/BookedNight");
 const { buildPlan } = require("./lib/plan");
 const { describe } = require("./lib/text");
+const { seedUsersAndReviews } = require("./lib/reviews");
 
 const HOSTS = ["demo_host", "aarav_stays", "meera_homes", "kabir_retreats", "isha_villas", "rohan_getaways", "tara_heritage", "vikram_lodges"];
 
@@ -53,6 +54,7 @@ async function main() {
   const docs = plan.map((slot, i) => ({ ...describe(slot, used), img: images[slot.id], owner: hosts[i % hosts.length]._id }));
   await Listing.insertMany(docs);
   console.log(`Seeded ${docs.length} listings in ${new Set(docs.map((d) => d.place)).size} places`);
+  await seedUsersAndReviews({ password });
   await mongoose.disconnect();
 }
 

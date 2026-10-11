@@ -76,7 +76,9 @@ function describe(slot, usedTitles) {
     const base = `${pick(rng, ADJ[category])} ${pick(rng, NOUN[category])}`;
     const r = rng();
     title = r < 0.4 ? `${base} in ${short}` : r < 0.75 ? `${base} near ${pick(rng, place.near)}` : `${base}, ${short}`;
-  } while (usedTitles.has(title) && ++tries < 40);
+    const words = base.toLowerCase().split(/\s+/);
+    if (new Set(words).size !== words.length) title = ""; // e.g. "Darbar Darbar": adjective repeats the noun, re-roll
+  } while ((!title || usedTitles.has(title)) && ++tries < 40);
   if (usedTitles.has(title)) title = `${title} ${tries}`; // practically never reached
   usedTitles.add(title);
 
