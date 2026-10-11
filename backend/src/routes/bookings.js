@@ -7,6 +7,7 @@ const { requireAuth } = require("../middleware/auth");
 const validate = require("../middleware/validate");
 const service = require("../services/bookingService");
 const payments = require("../services/paymentService");
+const demo = require("../services/demoPaymentService");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -55,8 +56,7 @@ router.post("/:id/verify", validate(verifySchema), async (req, res) => {
 
   let paymentId;
   if (payments.mode === "demo") {
-    if (!req.body.demo) throw new AppError(400, "Demo payment confirmation required");
-    paymentId = `demo_pay_${booking._id}`;
+    throw new AppError(400, "Use the payment window to pay; demo bookings are confirmed by a successful payment attempt");
   } else {
     const ok = payments.verifyCheckoutSignature({
       orderId: booking.payment?.orderId,
@@ -69,6 +69,37 @@ router.post("/:id/verify", validate(verifySchema), async (req, res) => {
     paymentId = req.body.razorpay_payment_id;
   }
   res.json(await service.confirmPayment(booking._id, paymentId));
+});
+
+// ---- demo gateway: only exists when no Razorpay keys are configured ----
+const demoOnly = (_req, _res, next) => (payments.mode === "demo" ? next() : next(new AppError(404, "Not found")));
+const startSchema = Joi.object({
+  method: Joi.string().valid("card", "upi", "netbanking", "wallet").required(),
+  card: Joi.object({
+    number: Joi.string().pattern(/^[0-9 ]{12,23}$/),
+    expiry: Joi.string().pattern(/^\d{2}\/\d{2}$/),
+    cvv: Joi.string().pattern(/^\d{3,4}$/),
+    name: Joi.string().trim().min(2).max(60),
+  }),
+  upi: Joi.object({ vpa: Joi.string().trim().pattern(/^[\w.\-]{2,256}@[a-zA-Z]{2,64}$/).message("Enter a valid UPI ID like name@bank") }),
+  bank: Joi.string().valid(...demo.BANKS),
+  wallet: Joi.string().valid(...demo.WALLETS),
+});
+const actionSchema = Joi.object({
+  action: Joi.string().valid("otp", "resend_otp", "approve", "decline", "bank_success", "bank_failure").required(),
+  otp: Joi.string().pattern(/^\d{6}$/).message("Enter the 6-digit OTP"),
+});
+const cancelSchema = Joi.object({ by: Joi.string().valid("user", "refresh").default("user") });
+const pub = (a) => (a.toObject ? a.toObject() : a);
+
+router.post("/:id/payments", demoOnly, validate(startSchema), async (req, res) => {
+  res.status(201).json(pub(await demo.start(req.params.id, req.user._id, req.body)));
+});
+router.post("/:id/payments/:attemptId/action", demoOnly, validate(actionSchema), async (req, res) => {
+  res.json(pub(await demo.act(req.params.id, req.user._id, req.params.attemptId, req.body)));
+});
+router.post("/:id/payments/:attemptId/cancel", demoOnly, validate(cancelSchema), async (req, res) => {
+  res.json(pub(await demo.cancel(req.params.id, req.user._id, req.params.attemptId, req.body.by)));
 });
 
 router.post("/:id/cancel", async (req, res) => {

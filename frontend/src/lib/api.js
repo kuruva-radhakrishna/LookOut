@@ -62,3 +62,17 @@ export const api = {
   put: (path, body) => request(path, { method: 'PUT', body }),
   del: (path) => request(path, { method: 'DELETE' }),
 }
+
+/** Fire-and-forget POST that survives the page closing or refreshing (fetch keepalive). */
+export function beacon(path, body) {
+  try {
+    fetch(`${BASE}${path}`, {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenStore.get()}` },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    /* nothing useful to do while unloading */
+  }
+}

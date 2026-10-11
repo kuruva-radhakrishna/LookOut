@@ -45,7 +45,10 @@ Set `VITE_MAPBOX_TOKEN` (a public `pk.` token, ideally URL-restricted) in `front
 
 ### Payments
 
-* **No Razorpay keys (default): demo mode.** The checkout page shows a *Simulate payment* button; no money moves. Handy for demos and for a free deployment.
+* **No Razorpay keys (default): demo mode.** A simulated gateway: pick UPI, card, net banking or a wallet, then go through a realistic checkout (processing steps, OTP page, "approve on your phone", a fake bank page). Nothing is charged and no card data is stored. Handy for demos and for a free deployment.
+  * The state machine runs on the server (`backend/src/services/demoPaymentService.js`), so the browser can't skip it: a booking is confirmed only by a successful attempt.
+  * Test inputs: cards `4111 1111 1111 1111` (instant success), `4000 0000 0000 3220` (asks for OTP `123456`), `...0002` declined, `...9995` insufficient funds, `...0069` expired, `...0127` wrong CVV; any other valid card number asks for an OTP. UPI ids containing `fail` are declined, containing `timeout` never answer. Punjab National Bank is "down", MobiKwik has no balance.
+  * Cancelling a payment, letting it time out, or **refreshing/closing the page mid-payment** cancels that attempt (the reservation and its 10-minute hold stay, so the guest can retry). Five failed attempts block further tries.
 * **Razorpay test mode:** set `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` (`rzp_test_...`). Checkout then opens the real Razorpay window and the server verifies the HMAC signature. Test cards/UPI: <https://razorpay.com/docs/payments/payments/test-card-details/>.
 * Optional webhook: Razorpay dashboard -> Webhooks -> `https://<api>/api/webhooks/razorpay`, event `payment.captured`, secret = `RAZORPAY_WEBHOOK_SECRET`.
 

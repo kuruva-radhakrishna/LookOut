@@ -79,7 +79,8 @@ async function createHold({ listingId, guestId, checkIn, checkOut, guests }) {
 
   try {
     const order = await payments.createOrder(booking);
-    booking.payment = { provider: order.provider, orderId: order.orderId };
+    booking.set("payment.provider", order.provider); // set fields one by one so payment.attempts keeps its default []
+    booking.set("payment.orderId", order.orderId);
     await booking.save();
     return { booking, checkout: { provider: order.provider, orderId: order.orderId, keyId: order.keyId } };
   } catch (err) {

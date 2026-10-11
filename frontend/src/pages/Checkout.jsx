@@ -6,6 +6,7 @@ import { fmtDate, inr, inrFromPaise } from '../lib/format'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import ConfirmDialog from '../components/ConfirmDialog'
+import DemoPayment from '../components/DemoPayment'
 import Spinner from '../components/Spinner'
 
 let razorpayLoader
@@ -56,6 +57,12 @@ export default function Checkout() {
     return () => clearInterval(t)
   }, [holdEnds])
 
+  const reloadBooking = () => api.get(`/bookings/${id}`).then(setBooking).catch(() => {})
+  const onDemoPaid = async () => {
+    await reloadBooking()
+    toast.success('Payment received. Your stay is booked!')
+  }
+
   async function verify(body) {
     try {
       await api.post(`/bookings/${id}/verify`, body)
@@ -71,7 +78,6 @@ export default function Checkout() {
 
   async function pay() {
     setBusy(true)
-    if (health.paymentMode === 'demo') return verify({ demo: true })
     try {
       await loadRazorpay()
       const rzp = new window.Razorpay({
@@ -203,19 +209,17 @@ export default function Checkout() {
         </dl>
       </div>
 
-      {isDemo && (
-        <p className="notice">
-          <strong>Demo mode:</strong> no real payment is taken. Click pay to simulate a successful card payment.
-        </p>
+      {isDemo ? (
+        <DemoPayment booking={booking} onPaid={onDemoPaid} reload={reloadBooking} />
+      ) : (
+        <>
+          <button className="btn btn-primary btn-block btn-lg" onClick={pay} disabled={busy}>
+            {busy ? <Loader2 className="spin" size={20} /> : <ShieldCheck size={20} />}
+            Pay {inrFromPaise(booking.pricing.total)}
+          </button>
+          <p className="hint center">Secure payment by Razorpay (UPI, cards, netbanking, wallets).</p>
+        </>
       )}
-
-      <button className="btn btn-primary btn-block btn-lg" onClick={pay} disabled={busy}>
-        {busy ? <Loader2 className="spin" size={20} /> : <ShieldCheck size={20} />}
-        {isDemo ? 'Simulate payment' : 'Pay'} {inrFromPaise(booking.pricing.total)}
-      </button>
-      <p className="hint center">
-        {isDemo ? 'Payments are simulated in this deployment.' : 'Secure payment by Razorpay (UPI, cards, netbanking, wallets).'}
-      </p>
       <p className="center">
         <button className="link-btn" onClick={() => setConfirmCancel(true)} disabled={busy}>
           Cancel reservation

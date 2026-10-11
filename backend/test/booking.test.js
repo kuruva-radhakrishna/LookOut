@@ -23,7 +23,12 @@ async function makeListing(owner, extra = {}) {
 }
 const book = (auth, listing, from, to, guests = 2) =>
   request(app).post("/api/bookings").set(auth).send({ listingId: String(listing._id), checkIn: day(from), checkOut: day(to), guests });
-const pay = (auth, id) => request(app).post(`/api/bookings/${id}/verify`).set(auth).send({ demo: true });
+const CARD_OK = { number: "4111111111111111", expiry: "12/30", cvv: "123", name: "Test User" }; // succeeds instantly
+const CARD_OTP = { ...CARD_OK, number: "4000000000003220" }; // needs the OTP 123456
+const startPayment = (auth, id, card = CARD_OK) => request(app).post(`/api/bookings/${id}/payments`).set(auth).send({ method: "card", card });
+const submitOtp = (auth, id, attemptId, otp = "123456") => request(app).post(`/api/bookings/${id}/payments/${attemptId}/action`).set(auth).send({ action: "otp", otp });
+// pays with an instant-success card; resolves to the payment attempt response
+const pay = (auth, id) => startPayment(auth, id);
 
 before(async () => {
   mongod = await MongoMemoryServer.create();
@@ -95,9 +100,12 @@ test("paying confirms the booking, blocks the dates in availability, and is idem
 
   const id = created.body.booking._id;
   const first = await pay(guest.auth, id);
-  const second = await pay(guest.auth, id);
-  assert.equal(first.body.status, "confirmed");
-  assert.equal(second.body.status, "confirmed");
+  assert.equal(first.status, 201);
+  assert.equal(first.body.status, "succeeded");
+  assert.equal((await Booking.findById(id)).status, "confirmed");
+  const second = await pay(guest.auth, id); // paying again must not charge twice
+  assert.equal(second.status, 409);
+  assert.equal((await Booking.findById(id)).status, "confirmed");
 
   const avail = await request(app).get(`/api/listings/${listing._id}/availability`);
   assert.deepEqual(avail.body.booked, [day(40), day(41)]);
@@ -115,6 +123,9 @@ test("an abandoned hold is reclaimed, and a late payment on it is refunded", asy
   const held = await book(slow.auth, listing, 50, 52);
   assert.equal(held.status, 201);
   assert.equal((await book(quick.auth, listing, 50, 52)).status, 409, "hold blocks others while valid");
+  // slow starts paying with a card that needs an OTP, and sits on the OTP page
+  const attempt = await startPayment(slow.auth, held.body.booking._id, CARD_OTP);
+  assert.equal(attempt.body.status, "awaiting_otp");
 
   // simulate the 10 minute window passing (the TTL sweeper hasn't run yet)
   await BookedNight.updateMany({ listing: listing._id }, { expiresAt: new Date(Date.now() - 1000) });
@@ -122,10 +133,11 @@ test("an abandoned hold is reclaimed, and a late payment on it is refunded", asy
   assert.equal(taken.status, 201, "expired hold must not block");
   assert.equal((await Booking.findById(held.body.booking._id)).status, "expired");
 
-  await pay(quick.auth, taken.body.booking._id);
-  const late = await pay(slow.auth, held.body.booking._id);
-  assert.equal(late.status, 409);
-  assert.match(late.body.error, /refunded/);
+  assert.equal((await pay(quick.auth, taken.body.booking._id)).body.status, "succeeded");
+  // slow finally enters the OTP: money was taken but the dates are gone, so it must be refunded
+  const late = await submitOtp(slow.auth, held.body.booking._id, attempt.body._id);
+  assert.equal(late.body.status, "failed");
+  assert.match(late.body.failureReason, /refunded/);
   const after = await Booking.findById(held.body.booking._id);
   assert.ok(after.payment.refundId, "late payer was refunded");
   assert.equal(await BookedNight.countDocuments({ listing: listing._id }), 2, "winner's nights untouched");
@@ -136,11 +148,12 @@ test("a late payment whose dates are still free re-claims them", async () => {
   const listing = await makeListing(host);
   const guest = await makeUser("late");
   const held = await book(guest.auth, listing, 60, 62);
-  await BookedNight.deleteMany({ booking: held.body.booking._id }); // TTL sweeper already ran
+  const attempt = await startPayment(guest.auth, held.body.booking._id, CARD_OTP);
+  await BookedNight.deleteMany({ booking: held.body.booking._id }); // the hold lapsed and the TTL sweeper already ran
   await Booking.findByIdAndUpdate(held.body.booking._id, { status: "expired" });
-  const res = await pay(guest.auth, held.body.booking._id);
-  assert.equal(res.status, 200);
-  assert.equal(res.body.status, "confirmed");
+  const res = await submitOtp(guest.auth, held.body.booking._id, attempt.body._id);
+  assert.equal(res.body.status, "succeeded");
+  assert.equal((await Booking.findById(held.body.booking._id)).status, "confirmed");
   assert.equal(await BookedNight.countDocuments({ listing: listing._id }), 2);
 });
 

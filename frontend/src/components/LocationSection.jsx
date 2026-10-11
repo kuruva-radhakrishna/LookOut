@@ -101,6 +101,11 @@ export default function LocationSection({ coordinates, label }) {
           {error}
         </p>
       )}
+      {import.meta.env.DEV && !MAPBOX_TOKEN && (
+        <p className="notice">
+          Dev note: no <code>VITE_MAPBOX_TOKEN</code> found, so this is the OpenStreetMap fallback. Add your token to <code>frontend/.env</code> and restart <code>npm run dev</code> to use Mapbox.
+        </p>
+      )}
       {!me && status !== 'error' && (
         <p className="hint">
           <Navigation size={12} /> Your location stays in your browser{MAPBOX_TOKEN ? '; it is only sent to Mapbox to calculate the drive.' : '.'}
